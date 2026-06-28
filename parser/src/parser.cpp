@@ -1,18 +1,19 @@
 #include "parser/parser.hpp"
 #include <format>
 
-namespace parser {
+namespace drum::parser {
 
   namespace {
-    Result<args::NewArgs> parse_new_args(int argc, const char *const argv[]) {
+    Result<commands::NewArgs> parse_new_args(int argc,
+                                             const char *const argv[]) {
       if (argc <= 2)
         return std::unexpected{"new command missing package name"};
 
-      args::NewArgs new_args{};
-      for (size_t i{2}; i < argc; i++) {
+      commands::NewArgs new_args{};
+      for (int i{2}; i < argc; i++) {
         std::string_view arg = argv[i];
         if (arg == "--lib") {
-          new_args.pkg_type = args::NewArgs::PackageType::library;
+          new_args.pkg_type = commands::NewArgs::PackageType::library;
         } else if (arg.starts_with("--")) {
           return std::unexpected{
               std::format("Unknown option for new: {}", arg)};
@@ -42,4 +43,4 @@ namespace parser {
     return std::unexpected{std::format("Unknown command: {}", cmd)};
   }
 
-} // namespace parser
+} // namespace drum::parser

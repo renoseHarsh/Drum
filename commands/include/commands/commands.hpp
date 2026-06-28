@@ -1,8 +1,8 @@
-#ifndef ARGS_HPP
-#define ARGS_HPP
+#ifndef DRUM_COMMANDS_HPP
+#define DRUM_COMMANDS_HPP
 
 #include <string>
-namespace args {
+namespace drum::commands {
 
   struct NewArgs {
     enum class PackageType { executable, library };
@@ -11,6 +11,6 @@ namespace args {
     PackageType pkg_type = PackageType::executable;
   };
 
-} // namespace args
+} // namespace drum::commands
 
-#endif // !ARGS_HPP
+#endif // !DRUM_COMMANDS_HPP
