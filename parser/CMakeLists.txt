@@ -6,7 +6,10 @@ target_include_directories(
   PRIVATE src/
   PUBLIC include/)
 
-target_link_libraries(parser PUBLIC commands)
+target_link_libraries(
+  parser
+  PUBLIC commands
+  PRIVATE project_warning)
 
 if(DRUM_TEST_ENABLE)
   add_subdirectory(test)

@@ -6,4 +6,7 @@ target_include_directories(
   PRIVATE src/
   PUBLIC include/)
 
-target_link_libraries(executor PUBLIC commands)
+target_link_libraries(
+  executor
+  PUBLIC commands
+  PRIVATE project_warning blueprint filesystem)
