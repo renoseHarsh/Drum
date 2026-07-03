@@ -9,4 +9,4 @@ target_include_directories(
 target_link_libraries(
   executor
   PUBLIC commands
-  PRIVATE project_warning blueprint filesystem)
+  PRIVATE blueprint filesystem project_warning)

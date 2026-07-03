@@ -2,6 +2,7 @@
 #define DRUM_PARSER_HPP
 
 #include <expected>
+#include <string>
 #include <variant>
 
 #include "commands/commands.hpp"

@@ -1,3 +1,4 @@
+#include "commands/commands.hpp"
 #include "parser/parser.hpp"
 #include <catch2/catch_test_macros.hpp>
 

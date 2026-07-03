@@ -1,5 +1,12 @@
+#include "commands/commands.hpp"
 #include "parser/parser.hpp"
+#include <algorithm>
+#include <cctype>
+#include <cstddef>
+#include <expected>
 #include <format>
+#include <string>
+#include <string_view>
 
 namespace drum::parser {
 
@@ -18,6 +25,11 @@ namespace drum::parser {
           return std::unexpected{
               std::format("Unknown option for new: {}", arg)};
         } else if (new_args.pkg_name.empty()) {
+
+          if (!std::ranges::all_of(
+                  arg, [](char c) { return std::isalpha(c) || c == '_'; }))
+            return std::unexpected(std::format("Invalid package name {}", arg));
+
           new_args.pkg_name = arg;
         } else
           return std::unexpected{std::format("Unknown arg: {}", arg)};
