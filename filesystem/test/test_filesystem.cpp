@@ -1,15 +1,12 @@
-#include "file_tree/file_tree.hpp"
-#include "filesystem/filesystem.hpp"
+import std;
+import filesystem;
+import file_tree;
+
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_test_run_info.hpp>
 #include <catch2/interfaces/catch_interfaces_reporter.hpp>
 #include <catch2/reporters/catch_reporter_event_listener.hpp>
 #include <catch2/reporters/catch_reporter_registrars.hpp>
-#include <filesystem>
-#include <fstream>
-#include <ios>
-#include <string>
-#include <string_view>
 
 namespace drum::fs::test {
   namespace {

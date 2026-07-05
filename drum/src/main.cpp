@@ -1,8 +1,6 @@
-#include "executor/executor.hpp"
-#include "parser/parser.hpp"
-#include <cstddef>
-#include <print>
-#include <variant>
+import std;
+import parser;
+import executor;
 
 int main(int argc, char *argv[]) {
   if (const auto result = drum::parser::parse_arguments(argc, argv); result) {

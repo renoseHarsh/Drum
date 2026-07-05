@@ -1,3 +1,3 @@
-add_library(commands INTERFACE)
+add_library(commands)
 
-target_include_directories(commands INTERFACE include/)
+target_sources(commands PUBLIC FILE_SET CXX_MODULES FILES src/commands.cppm)

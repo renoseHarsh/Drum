@@ -1,10 +1,9 @@
 add_library(filesystem)
 
-target_sources(filesystem PRIVATE src/filesystem.cpp)
-target_include_directories(
+target_sources(
   filesystem
-  PRIVATE src/
-  PUBLIC include/)
+  PUBLIC FILE_SET CXX_MODULES FILES src/filesystem.cppm
+  PRIVATE src/filesystem.cpp)
 
 target_link_libraries(
   filesystem

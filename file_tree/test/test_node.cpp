@@ -1,7 +1,6 @@
-#include "file_tree/file_tree.hpp"
+import std;
+import file_tree;
 #include <catch2/catch_test_macros.hpp>
-#include <string_view>
-#include <variant>
 
 namespace drum::ft::test {
   namespace {

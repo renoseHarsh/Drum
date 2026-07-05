@@ -1,10 +1,9 @@
 add_library(file_tree)
 
-target_sources(file_tree PRIVATE src/file_tree.cpp)
-target_include_directories(
+target_sources(
   file_tree
-  PRIVATE src/
-  PUBLIC include/)
+  PUBLIC FILE_SET CXX_MODULES FILES src/file_tree.cppm
+  PRIVATE src/file_tree.cpp)
 
 target_link_libraries(file_tree PRIVATE project_warning)
 

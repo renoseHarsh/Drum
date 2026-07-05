@@ -1,18 +1,10 @@
-#include "commands/commands.hpp"
-#include "parser/parser.hpp"
-#include <algorithm>
-#include <cctype>
-#include <cstddef>
-#include <expected>
-#include <format>
-#include <string>
-#include <string_view>
+module parser;
 
 namespace drum::parser {
-
   namespace {
-    Result<commands::NewArgs> parse_new_args(int argc,
-                                             const char *const argv[]) {
+
+    std::expected<std::variant<commands::NewArgs>, std::string>
+    parse_new_args(int argc, const char *const argv[]) {
       if (argc <= 2)
         return std::unexpected{"new command missing package name"};
 
@@ -44,7 +36,8 @@ namespace drum::parser {
 
   } // namespace
 
-  Result<Command> parse_arguments(int argc, const char *const argv[]) {
+  std::expected<std::variant<commands::NewArgs>, std::string>
+  parse_arguments(int argc, const char *const argv[]) {
     if (argc <= 1)
       return std::unexpected{"Provide a command"};
 

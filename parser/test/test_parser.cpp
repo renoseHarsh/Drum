@@ -1,5 +1,7 @@
-#include "commands/commands.hpp"
-#include "parser/parser.hpp"
+import parser;
+import std;
+import commands;
+
 #include <catch2/catch_test_macros.hpp>
 
 constexpr const char *arg0 = "drum";

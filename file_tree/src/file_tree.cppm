@@ -1,15 +1,8 @@
-#ifndef DRUM_FILE_TREE_HPP
-#define DRUM_FILE_TREE_HPP
-
-#include <cstddef>
-#include <memory>
-#include <string>
-#include <string_view>
-#include <variant>
-#include <vector>
+export module file_tree;
+import std;
 
 namespace drum::ft {
-  class Node {
+  export class Node {
     using dirs = std::vector<std::unique_ptr<Node>>;
     std::string_view name;
     std::variant<std::string, dirs> tree;
@@ -24,10 +17,9 @@ namespace drum::ft {
     NodeType type;
     Node(std::string_view name, std::string content);
     Node(std::string_view name);
-    Node(std::string_view name, size_t n);
+    Node(std::string_view name, std::size_t n);
     Node &push_dir(std::string_view name);
     Node &push_file(std::string_view name, std::string content);
   };
-} // namespace drum::ft
 
-#endif // !DRUM_FILE_TREE_HPP
+} // namespace drum::ft

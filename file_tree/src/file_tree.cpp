@@ -1,9 +1,4 @@
-#include "file_tree/file_tree.hpp"
-#include <cstddef>
-#include <memory>
-#include <string>
-#include <string_view>
-#include <utility>
+module file_tree;
 
 namespace drum::ft {
   Node::Node(std::string_view name, std::string content)

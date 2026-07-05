@@ -1,20 +1,14 @@
-#include "blueprint/blueprint.hpp"
-#include "file_tree/file_tree.hpp"
-#include <cctype>
-#include <format>
-#include <string>
-#include <string_view>
+module blueprint;
 
 namespace drum::bp {
-
   namespace {
-    constexpr std::string_view package_toml = "Package Name: \"{}\"\n"
-                                              "Type: \"{}\"";
+    constexpr std::string_view package_toml{"Package Name: \"{}\"\n"
+                                            "Type: \"{}\""};
 
-    constexpr std::string_view main_cpp = "#include <iostream>\n\n"
-                                          "int main() {\n"
-                                          "  std::cout<<\"Hello World\\n\";\n"
-                                          "}";
+    constexpr std::string_view main_cpp{"#include <iostream>\n\n"
+                                        "int main() {\n"
+                                        "  std::cout<<\"Hello World\\n\";\n"
+                                        "}"};
 
   } // namespace
 
@@ -34,4 +28,5 @@ namespace drum::bp {
 
     return package;
   }
+
 } // namespace drum::bp

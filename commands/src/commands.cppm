@@ -1,10 +1,9 @@
-#ifndef DRUM_COMMANDS_HPP
-#define DRUM_COMMANDS_HPP
+export module commands;
+import std;
 
-#include <string>
 namespace drum::commands {
 
-  struct NewArgs {
+  export struct NewArgs {
     enum class PackageType { executable, library };
 
     std::string pkg_name;
@@ -12,5 +11,3 @@ namespace drum::commands {
   };
 
 } // namespace drum::commands
-
-#endif // !DRUM_COMMANDS_HPP

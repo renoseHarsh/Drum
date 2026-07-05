@@ -1,10 +1,9 @@
 add_library(blueprint)
 
-target_sources(blueprint PRIVATE src/blueprint.cpp)
-target_include_directories(
+target_sources(
   blueprint
-  PRIVATE src/
-  PUBLIC include/)
+  PUBLIC FILE_SET CXX_MODULES FILES src/blueprint.cppm
+  PRIVATE src/blueprint.cpp)
 
 target_link_libraries(
   blueprint

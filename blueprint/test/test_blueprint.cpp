@@ -1,8 +1,8 @@
-#include "blueprint/blueprint.hpp"
-#include "file_tree/file_tree.hpp"
+import std;
+import blueprint;
+import file_tree;
+
 #include <catch2/catch_test_macros.hpp>
-#include <format>
-#include <string_view>
 
 namespace drum::bp::test {
   namespace {

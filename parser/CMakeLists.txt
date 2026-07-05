@@ -1,10 +1,9 @@
 add_library(parser)
 
-target_sources(parser PRIVATE src/parser.cpp)
-target_include_directories(
+target_sources(
   parser
-  PRIVATE src/
-  PUBLIC include/)
+  PUBLIC FILE_SET CXX_MODULES FILES src/parser.cppm
+  PRIVATE src/parser.cpp)
 
 target_link_libraries(
   parser

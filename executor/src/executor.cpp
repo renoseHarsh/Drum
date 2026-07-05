@@ -1,9 +1,6 @@
-#include "blueprint/blueprint.hpp"
-#include "commands/commands.hpp"
-#include "executor/executor.hpp"
-#include "filesystem/filesystem.hpp"
-#include <optional>
-#include <string>
+module executor;
+import filesystem;
+import blueprint;
 
 namespace drum::executor {
   std::optional<std::string> execute(const commands::NewArgs &cmd) {
