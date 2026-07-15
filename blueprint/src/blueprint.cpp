@@ -2,8 +2,9 @@ module blueprint;
 
 namespace drum::bp {
   namespace {
-    constexpr std::string_view package_toml{"Package Name: \"{}\"\n"
-                                            "Type: \"{}\""};
+    constexpr std::string_view package_toml{"name = \"{}\"\n"
+                                            "version = \"0.1.0\"\n"
+                                            "type = \"{}\""};
 
     constexpr std::string_view main_cpp{"#include <iostream>\n\n"
                                         "int main() {\n"

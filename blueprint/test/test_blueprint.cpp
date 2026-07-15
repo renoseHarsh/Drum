@@ -6,13 +6,15 @@ import file_tree;
 
 namespace drum::bp::test {
   namespace {
-    constexpr std::string_view package_toml = "Package Name: \"{}\"\n"
-                                              "Type: \"{}\"";
+    constexpr std::string_view package_toml{"name = \"{}\"\n"
+                                            "version = \"0.1.0\"\n"
+                                            "type = \"{}\""};
 
-    constexpr std::string_view main_cpp = "#include <iostream>\n\n"
-                                          "int main() {\n"
-                                          "  std::cout<<\"Hello World\\n\";\n"
-                                          "}";
+    constexpr std::string_view main_cpp{"#include <iostream>\n\n"
+                                        "int main() {\n"
+                                        "  std::cout<<\"Hello World\\n\";\n"
+                                        "}"};
+
     constexpr std::string_view exec_pkg_name = "exec_pkg";
     constexpr std::string_view lib_pkg_name = "lib_pkg";
 
