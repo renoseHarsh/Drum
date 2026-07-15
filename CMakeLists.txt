@@ -8,10 +8,26 @@ set(CMAKE_CXX_MODULE_STD ON)
 
 project(Drum LANGUAGES CXX)
 
+set(CPM_DOWNLOAD_VERSION 0.43.1)
+set(CPM_DOWNLOAD_LOCATION
+    "${CMAKE_BINARY_DIR}/cmake/CPM_${CPM_DOWNLOAD_VERSION}.cmake")
+
+if(NOT (EXISTS ${CPM_DOWNLOAD_LOCATION}))
+  message(STATUS "Downloading CPM.cmake")
+  file(
+    DOWNLOAD
+    https://github.com/TheLartians/CPM.cmake/releases/download/v${CPM_DOWNLOAD_VERSION}/CPM.cmake
+    ${CPM_DOWNLOAD_LOCATION})
+endif()
+
+set(CPM_SOURCE_CACHE "$ENV{HOME}/.cache/CPM")
+include(${CPM_DOWNLOAD_LOCATION})
+
 enable_testing()
 
 if(DRUM_TEST_ENABLE OR DRUM_BENCHMARK_ENABLE)
-  find_package(Catch2 CONFIG REQUIRED)
+  cpmaddpackage(NAME Catch2 GITHUB_REPOSITORY catchorg/Catch2 VERSION 3.15.2)
+  list(APPEND CMAKE_MODULE_PATH "${Catch2_SOURCE_DIR}/extras")
   include(Catch)
 endif()
 

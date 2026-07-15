@@ -3,4 +3,4 @@ build-test/
 compile_commands.json
 .cache/
 
-vcpkg_installed/
+.clangd
