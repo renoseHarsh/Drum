@@ -1,5 +1,5 @@
 export module executor;
-import commands;
+export import commands;
 import std;
 
 namespace drum::executor {

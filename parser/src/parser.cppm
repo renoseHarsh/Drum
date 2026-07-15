@@ -1,5 +1,5 @@
 export module parser;
-import commands;
+export import commands;
 import std;
 
 namespace drum::parser {
