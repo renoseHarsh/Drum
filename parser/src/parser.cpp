@@ -2,8 +2,7 @@ module parser;
 
 namespace drum::parser {
   namespace {
-
-    std::expected<std::variant<commands::NewArgs>, std::string>
+    std::expected<Command, std::string>
     parse_new_args(int argc, const char *const argv[]) {
       if (argc <= 2)
         return std::unexpected{"new command missing package name"};
@@ -36,7 +35,7 @@ namespace drum::parser {
 
   } // namespace
 
-  std::expected<std::variant<commands::NewArgs>, std::string>
+  std::expected<Command, std::string>
   parse_arguments(int argc, const char *const argv[]) {
     if (argc <= 1)
       return std::unexpected{"Provide a command"};
