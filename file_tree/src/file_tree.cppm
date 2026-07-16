@@ -1,8 +1,8 @@
 export module file_tree;
 import std;
 
-namespace drum::ft {
-  export class Node {
+export namespace drum::ft {
+  class Node {
     using dirs = std::vector<std::unique_ptr<Node>>;
     std::string_view name;
     std::variant<std::string, dirs> tree;

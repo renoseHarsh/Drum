@@ -1,11 +1,9 @@
 export module commands;
 import std;
 
-namespace drum::commands {
-
-  export struct NewArgs {
+export namespace drum::commands {
+  struct NewArgs {
     enum class PackageType { executable, library };
-
     std::string pkg_name;
     PackageType pkg_type = PackageType::executable;
   };
