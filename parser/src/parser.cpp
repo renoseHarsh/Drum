@@ -1,5 +1,7 @@
 module parser;
 
+import std;
+
 namespace drum::parser {
   namespace {
     std::expected<Command, std::string>
@@ -7,11 +9,11 @@ namespace drum::parser {
       if (argc <= 2)
         return std::unexpected{"new command missing package name"};
 
-      commands::NewArgs new_args{};
+      new_cmd::NewArgs new_args{};
       for (int i{2}; i < argc; i++) {
         std::string_view arg = argv[i];
         if (arg == "--lib") {
-          new_args.pkg_type = commands::NewArgs::PackageType::library;
+          new_args.pkg_type = new_cmd::NewArgs::PackageType::library;
         } else if (arg.starts_with("--")) {
           return std::unexpected{
               std::format("Unknown option for new: {}", arg)};

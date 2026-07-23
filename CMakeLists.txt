@@ -31,6 +31,8 @@ if(DRUM_TEST_ENABLE OR DRUM_BENCHMARK_ENABLE)
   include(Catch)
 endif()
 
+include(${CMAKE_SOURCE_DIR}/cmake/DrumCommand.cmake)
+
 add_library(project_warning INTERFACE)
 
 target_compile_options(
@@ -45,8 +47,4 @@ target_compile_options(
 
 add_subdirectory(drum)
 add_subdirectory(parser)
-add_subdirectory(executor)
-add_subdirectory(commands)
-add_subdirectory(file_tree)
-add_subdirectory(blueprint)
-add_subdirectory(filesystem)
+add_subdirectory(new)

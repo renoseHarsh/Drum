@@ -1,15 +1,13 @@
-add_library(parser)
-
-target_sources(
+drum_add_command(
+  NAME
   parser
-  PUBLIC FILE_SET CXX_MODULES FILES src/parser.cppm
-  PRIVATE src/parser.cpp)
+  MODULES
+  src/parser.cppm
+  SOURCES
+  src/parser.cpp
+  PUBLIC_LIBRARIES
+  new_cmd
+  TEST_SOURCES
+  test/test_parser.cpp)
 
-target_link_libraries(
-  parser
-  PUBLIC commands
-  PRIVATE project_warning)
-
-if(DRUM_TEST_ENABLE)
-  add_subdirectory(test)
-endif()
+target_link_libraries(parser PUBLIC new_cmd)

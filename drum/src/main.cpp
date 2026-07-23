@@ -1,6 +1,7 @@
-import std;
 import parser;
-import executor;
+import new_cmd;
+
+import std;
 
 template <class... Ts> struct overloaded : Ts... {
   using Ts::operator()...;
@@ -12,14 +13,14 @@ int main(int argc, char *argv[]) {
 
     auto res = std::visit(
         overloaded{
-            [](const drum::commands::NewArgs &arg) {
-              return drum::executor::execute_new(arg);
+            [](const drum::new_cmd::NewArgs &arg) {
+              return drum::new_cmd::execute(arg);
             },
         },
         result.value());
 
-    if (res) {
-      std::println("{}", res.value());
+    if (!res.has_value()) {
+      std::println("{}", res.error());
       return 1;
     }
   } else {
