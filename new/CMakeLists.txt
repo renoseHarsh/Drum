@@ -1,0 +1,14 @@
+drum_add_command(
+  NAME
+  new_cmd
+  MODULES
+  src/new_cmd.cppm
+  src/file_tree.cppm
+  src/blueprint.cppm
+  src/filesystem.cppm
+  SOURCES
+  src/new_cmd.cpp
+  TEST_MODULES
+  test/test_file_tree.cpp
+  test/test_blueprint.cpp
+  test/test_filesystem.cpp)
