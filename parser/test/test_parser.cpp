@@ -1,8 +1,8 @@
-import parser;
+#include <catch2/catch_test_macros.hpp>
 
 import std;
 
-#include <catch2/catch_test_macros.hpp>
+import parser;
 
 namespace drum::parser::test {
   namespace {

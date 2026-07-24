@@ -2,9 +2,12 @@ module parser;
 
 import std;
 
+import new_cmd;
+import builder_cmd;
+
 namespace drum::parser {
   namespace {
-    std::expected<Command, std::string>
+    std::expected<new_cmd::NewArgs, std::string>
     parse_new_args(int argc, const char *const argv[]) {
       if (argc <= 2)
         return std::unexpected{"new command missing package name"};
@@ -45,6 +48,8 @@ namespace drum::parser {
     std::string cmd = argv[1];
     if (cmd == "new") {
       return parse_new_args(argc, argv);
+    } else if (cmd == "build") {
+      return builder_cmd::BuildArgs{};
     }
     return std::unexpected{std::format("Unknown command: {}", cmd)};
   }

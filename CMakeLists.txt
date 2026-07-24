@@ -48,3 +48,4 @@ target_compile_options(
 add_subdirectory(drum)
 add_subdirectory(parser)
 add_subdirectory(new)
+add_subdirectory(builder)

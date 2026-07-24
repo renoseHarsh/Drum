@@ -1,10 +1,12 @@
 export module parser;
 
 export import new_cmd;
+export import builder_cmd;
+
 import std;
 
 export namespace drum::parser {
-  using Command = std::variant<new_cmd::NewArgs>;
+  using Command = std::variant<new_cmd::NewArgs, builder_cmd::BuildArgs>;
   std::expected<Command, std::string> parse_arguments(int argc,
                                                       const char *const argv[]);
 } // namespace drum::parser
