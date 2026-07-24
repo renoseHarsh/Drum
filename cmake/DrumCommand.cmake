@@ -47,6 +47,7 @@ function(drum_add_command)
       PUBLIC ${DRUM_PUBLIC_LIBRARIES}
       PRIVATE ${DRUM_PRIVATE_LIBRARIES} test_utils Catch2::Catch2WithMain)
 
-    catch_discover_tests(${test_target})
+    catch_discover_tests(${test_target} TEST_PREFIX "${DRUM_NAME}::" PROPERTIES
+                         LABELS ${DRUM_NAME})
   endif()
 endfunction()
