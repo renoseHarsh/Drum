@@ -5,6 +5,8 @@ module new_cmd:test_blueprint;
 
 import :blueprint;
 
+import std;
+
 namespace drum::new_cmd::bp::test {
   namespace {
     constexpr std::string_view package_toml{"name = \"{}\"\n"

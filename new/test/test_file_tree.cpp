@@ -5,6 +5,8 @@ module new_cmd:test_file_tree;
 
 import :file_tree;
 
+import std;
+
 namespace drum::new_cmd::ft::test {
   namespace {
     constexpr std::string_view name = "node_name";

@@ -22,7 +22,6 @@ namespace drum::new_cmd::ft {
     std::string_view name{};
     std::variant<std::string, dirs> tree{};
     dirs &children();
-    static bool valid(std::string_view name);
   };
 
   Node::Node(std::string_view name, std::string content)
