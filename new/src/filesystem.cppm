@@ -38,8 +38,8 @@ namespace drum::new_cmd::fs {
             std::format(create_dir_fail, file_tree.get_name(), ec.message())};
 
       for (const auto &nodes : file_tree.children()) {
-        if (const auto error_msg = build_artifacts(*nodes, path)) {
-          return error_msg;
+        if (auto result = build_artifacts(*nodes, path); !result.has_value()) {
+          return result;
         }
       }
 

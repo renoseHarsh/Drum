@@ -1,5 +1,4 @@
 include(CMakeParseArguments)
-include(Catch)
 
 function(drum_add_command)
   set(options)
@@ -33,6 +32,7 @@ function(drum_add_command)
   # Tests
   #
   if(DRUM_TEST_ENABLE AND (DRUM_TEST_MODULES OR DRUM_TEST_SOURCES))
+    include(Catch)
     set(test_target "${DRUM_NAME}_tests")
 
     add_executable(${test_target})
