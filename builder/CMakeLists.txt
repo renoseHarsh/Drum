@@ -1,3 +1,4 @@
+add_compile_definitions(TOML_EXCEPTIONS=0)
 cpmaddpackage(
   NAME
   tomlplusplus
@@ -6,15 +7,17 @@ cpmaddpackage(
   GIT_TAG
   master
   OPTIONS
-  "TOMLPLUSPLUS_BUILD_MODULES ON"
-  "TOML_EXCEPTIONS OFF")
+  "TOMLPLUSPLUS_BUILD_MODULES ON")
 
 drum_add_command(
   NAME
   builder_cmd
   MODULES
   src/builder_cmd.cppm
+  src/validate.cppm
   SOURCES
   src/builder_cmd.cpp
   PRIVATE_LIBRARIES
-  tomlplusplus_modules)
+  tomlplusplus_modules
+  TEST_MODULES
+  test/test_validate.cpp)
