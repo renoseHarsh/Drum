@@ -1,11 +1,12 @@
 module;
+
 #include <catch2/catch_test_macros.hpp>
 
 module new_cmd:test_file_tree;
 
-import :file_tree;
-
 import std;
+
+import :file_tree;
 
 namespace drum::new_cmd::ft::test {
   namespace {

@@ -1,11 +1,12 @@
 module;
+
 #include <catch2/catch_test_macros.hpp>
 
 module new_cmd:test_blueprint;
 
-import :blueprint;
-
 import std;
+
+import :blueprint;
 
 namespace drum::new_cmd::bp::test {
   namespace {

@@ -1,8 +1,8 @@
 module new_cmd:blueprint;
 
-import :file_tree;
-
 import std;
+
+import :file_tree;
 
 namespace drum::new_cmd::bp {
   namespace {

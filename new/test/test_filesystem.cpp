@@ -1,12 +1,13 @@
 module;
+
 #include <catch2/catch_test_macros.hpp>
 
 module new_cmd:test_filesystem;
 
+import std;
+
 import :filesystem;
 import :test_environment;
-
-import std;
 
 namespace drum::new_cmd::fs::test {
   namespace {

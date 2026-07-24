@@ -1,12 +1,13 @@
 module;
+
 #include <catch2/catch_test_macros.hpp>
 
 module new_cmd:integration;
 
-import :test_environment;
+import std;
 
 import new_cmd;
-import std;
+import :test_environment;
 
 namespace drum::new_cmd::integration {
   using new_cmd::test_env::check_valid_dir;
