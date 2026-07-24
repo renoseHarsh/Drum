@@ -45,7 +45,7 @@ function(drum_add_command)
     target_link_libraries(
       ${test_target}
       PUBLIC ${DRUM_PUBLIC_LIBRARIES}
-      PRIVATE ${DRUM_PRIVATE_LIBRARIES} Catch2::Catch2WithMain)
+      PRIVATE ${DRUM_PRIVATE_LIBRARIES} test_utils Catch2::Catch2WithMain)
 
     catch_discover_tests(${test_target})
   endif()

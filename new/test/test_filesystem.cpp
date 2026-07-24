@@ -7,11 +7,10 @@ module new_cmd:test_filesystem;
 import std;
 
 import :filesystem;
-import :test_environment;
+import test_environment;
 
 namespace drum::new_cmd::fs::test {
   namespace {
-    using test_env::check_valid_dir;
     std::string read_file(const std::filesystem::path &path) {
       std::ifstream file{path, std::ios::binary};
       REQUIRE(file);
@@ -31,6 +30,10 @@ namespace drum::new_cmd::fs::test {
       REQUIRE(read_file(file_name) == content);
     }
 
+    void check_valid_dir(const std::filesystem::path &path) {
+      REQUIRE(std::filesystem::exists(path));
+      REQUIRE(std::filesystem::is_directory(path));
+    }
   } // namespace
 
   TEST_CASE("Create a single file") {

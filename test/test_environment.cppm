@@ -1,19 +1,12 @@
 module;
 
-#include <catch2/catch_test_macros.hpp>
 #include <catch2/reporters/catch_reporter_event_listener.hpp>
-#include <catch2/reporters/catch_reporter_registrars.hpp>
 
-module new_cmd:test_environment;
+export module test_environment;
 
 import std;
 
-namespace drum::new_cmd::test_env {
-  void check_valid_dir(const std::filesystem::path &path) {
-    REQUIRE(std::filesystem::exists(path));
-    REQUIRE(std::filesystem::is_directory(path));
-  }
-
+export namespace drum::test_env {
   class TestEnvironment : public Catch::EventListenerBase {
   public:
     using Catch::EventListenerBase::EventListenerBase;
@@ -36,5 +29,4 @@ namespace drum::new_cmd::test_env {
     path temp_dir;
     path old_cwd;
   };
-  CATCH_REGISTER_LISTENER(TestEnvironment);
-} // namespace drum::new_cmd::test_env
+} // namespace drum::test_env

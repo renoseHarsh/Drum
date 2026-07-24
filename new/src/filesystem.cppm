@@ -1,8 +1,8 @@
 module new_cmd:filesystem;
 
-import :file_tree;
-
 import std;
+
+import :file_tree;
 
 namespace drum::new_cmd::fs {
   namespace {

@@ -1,22 +1,30 @@
 module;
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/reporters/catch_reporter_registrars.hpp>
 
 module new_cmd:integration;
 
 import std;
 
 import new_cmd;
-import :test_environment;
+import test_environment;
 
 namespace drum::new_cmd::integration {
-  using new_cmd::test_env::check_valid_dir;
+  CATCH_REGISTER_LISTENER(test_env::TestEnvironment);
+
   namespace {
     void check_valid_file(const std::filesystem::path &file_name) {
       REQUIRE(std::filesystem::exists(file_name));
       REQUIRE(std::filesystem::is_regular_file(file_name));
     }
+
+    void check_valid_dir(const std::filesystem::path &path) {
+      REQUIRE(std::filesystem::exists(path));
+      REQUIRE(std::filesystem::is_directory(path));
+    }
   }; // namespace
+
   TEST_CASE("Valid executable package") {
     constexpr std::string_view pkg_name{"exec_pkg"};
 

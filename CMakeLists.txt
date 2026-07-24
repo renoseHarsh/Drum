@@ -29,6 +29,7 @@ if(DRUM_TEST_ENABLE OR DRUM_BENCHMARK_ENABLE)
   cpmaddpackage(NAME Catch2 GITHUB_REPOSITORY catchorg/Catch2 VERSION 3.15.2)
   list(APPEND CMAKE_MODULE_PATH "${Catch2_SOURCE_DIR}/extras")
   include(Catch)
+  add_subdirectory(test)
 endif()
 
 include(${CMAKE_SOURCE_DIR}/cmake/DrumCommand.cmake)
