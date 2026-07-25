@@ -15,6 +15,9 @@ drum_add_command(
   MODULES
   src/builder_cmd.cppm
   src/validate.cppm
+  src/discover.cppm
+  src/compile.cppm
+  src/link.cppm
   SOURCES
   src/builder_cmd.cpp
   PRIVATE_LIBRARIES

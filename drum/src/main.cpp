@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
                               }},
                    result.value());
 
-    if (!res.has_value()) {
+    if (!res.has_value() && !res.error().empty()) {
       std::println("{}", res.error());
       return 1;
     }
