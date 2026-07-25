@@ -1,12 +1,8 @@
-module;
-
-#include <crt_externs.h>
-#include <spawn.h>
-#include <sys/wait.h>
-
 module builder_cmd:link;
 
 import std;
+
+import :process;
 
 namespace fs = std::filesystem;
 
@@ -20,37 +16,10 @@ namespace drum::builder_cmd::link {
 
       std::ranges::transform(objects, std::back_inserter(args),
                              [](const fs::path &p) { return p.string(); });
-
       args.push_back("-o");
       args.push_back(output.string());
 
-      std::vector<char *> argv(args.size() + 1);
-      std::ranges::transform(args, argv.begin(),
-                             [](std::string &arg) { return arg.data(); });
-      argv.back() = nullptr;
-
-      char **envp = *_NSGetEnviron();
-
-      pid_t pid;
-      if (int err = posix_spawnp(&pid, "clang++", nullptr, nullptr, argv.data(),
-                                 envp)) {
-        return std::unexpected{std::strerror(err)};
-      }
-
-      int wstatus;
-      if (int status = waitpid(pid, &wstatus, 0); status == -1) {
-        return std::unexpected{std::strerror(status)};
-      }
-
-      if (WIFEXITED(wstatus)) {
-        if (WEXITSTATUS(wstatus)) {
-          return std::unexpected{std::string{}};
-        }
-
-        return {};
-      }
-
-      return std::unexpected{"unexpected error"};
+      return process::run_process(args);
     }
   } // namespace
 

@@ -18,6 +18,7 @@ drum_add_command(
   src/discover.cppm
   src/compile.cppm
   src/link.cppm
+  src/process.cppm
   SOURCES
   src/builder_cmd.cpp
   PRIVATE_LIBRARIES
