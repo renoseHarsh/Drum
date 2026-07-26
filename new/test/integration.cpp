@@ -7,7 +7,7 @@ module new_cmd:integration;
 import std;
 
 import new_cmd;
-import test_environment;
+import test_util;
 
 namespace fs = std::filesystem;
 
@@ -25,7 +25,7 @@ namespace drum::new_cmd::integration {
   }; // namespace
 
   TEST_CASE("Valid executable package") {
-    test_env::TestEnvironment env;
+    test_util::TestEnvironment env;
 
     constexpr std::string_view pkg_name{"exec_pkg"};
 
@@ -42,7 +42,7 @@ namespace drum::new_cmd::integration {
   }
 
   TEST_CASE("Valid library package") {
-    test_env::TestEnvironment env;
+    test_util::TestEnvironment env;
 
     constexpr std::string_view pkg_name{"lib_pkg"};
 
@@ -59,7 +59,7 @@ namespace drum::new_cmd::integration {
   }
 
   TEST_CASE("Fails if destination exists") {
-    test_env::TestEnvironment env;
+    test_util::TestEnvironment env;
 
     constexpr std::string_view pkg_name{"existing_pkg"};
     std::filesystem::create_directory(pkg_name);
@@ -68,7 +68,7 @@ namespace drum::new_cmd::integration {
 
     auto result = execute(args);
     REQUIRE_FALSE(result.has_value());
-    REQUIRE(result.error()
-            == std::format("Destination '{}' already exists", pkg_name));
+    REQUIRE(result.error() ==
+            std::format("Destination '{}' already exists", pkg_name));
   }
 } // namespace drum::new_cmd::integration

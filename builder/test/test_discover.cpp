@@ -7,7 +7,7 @@ module builder_cmd:test_discover;
 import std;
 
 import :discover;
-import test_environment;
+import test_util;
 
 namespace fs = std::filesystem;
 
@@ -34,7 +34,7 @@ namespace drum::builder_cmd::discover::test {
     }
 
     void create_structure(const std::vector<fs::path> &paths) {
-      test_env::TestEnvironment env{};
+      test_util::TestEnvironment env{};
 
       fs::create_directory("src");
 
@@ -61,7 +61,7 @@ namespace drum::builder_cmd::discover::test {
   }
 
   TEST_CASE("Empty src directory") {
-    test_env::TestEnvironment env{};
+    test_util::TestEnvironment env{};
 
     fs::create_directory("src");
     auto result = discover();

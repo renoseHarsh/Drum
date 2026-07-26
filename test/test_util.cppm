@@ -1,10 +1,10 @@
-export module test_environment;
+export module test_util;
 
 import std;
 
 namespace fs = std::filesystem;
 
-export namespace drum::test_env {
+export namespace drum::test_util {
   class TestEnvironment {
   public:
     TestEnvironment()
@@ -28,4 +28,12 @@ export namespace drum::test_env {
     fs::path temp_dir{};
     fs::path old_cwd{};
   };
-} // namespace drum::test_env
+
+  void write_file(const fs::path &path, std::string_view content) {
+    if (path.has_parent_path()) {
+      fs::create_directories(path.parent_path());
+    }
+    std::ofstream file{path};
+    file << content;
+  }
+} // namespace drum::test_util

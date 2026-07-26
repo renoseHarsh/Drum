@@ -7,7 +7,7 @@ module new_cmd:test_filesystem;
 import std;
 
 import :filesystem;
-import test_environment;
+import test_util;
 
 namespace drum::new_cmd::fs::test {
   namespace {
@@ -37,7 +37,7 @@ namespace drum::new_cmd::fs::test {
   } // namespace
 
   TEST_CASE("Create a single file") {
-    test_env::TestEnvironment env;
+    test_util::TestEnvironment env;
 
     constexpr std::string_view file_name{"single_file.txt"};
     constexpr std::string_view file_content{"single file content"};
@@ -49,7 +49,7 @@ namespace drum::new_cmd::fs::test {
   }
 
   TEST_CASE("Empty Directory") {
-    test_env::TestEnvironment env;
+    test_util::TestEnvironment env;
 
     constexpr std::string_view dir_name{"empty_directory"};
     ft::Node file_tree(dir_name);
@@ -60,7 +60,7 @@ namespace drum::new_cmd::fs::test {
   }
 
   TEST_CASE("Directory with file") {
-    test_env::TestEnvironment env;
+    test_util::TestEnvironment env;
 
     constexpr std::string_view dir_name{"dir_with_one_file"};
     constexpr std::string_view file_name{"single_dir_nested_file.txt"};
@@ -79,7 +79,7 @@ namespace drum::new_cmd::fs::test {
   }
 
   TEST_CASE("Nested directories and files") {
-    test_env::TestEnvironment env;
+    test_util::TestEnvironment env;
 
     constexpr std::string_view root_dir_name{"root_dir"};
 
@@ -126,7 +126,7 @@ namespace drum::new_cmd::fs::test {
   }
 
   TEST_CASE("Root already exists") {
-    test_env::TestEnvironment env;
+    test_util::TestEnvironment env;
 
     constexpr std::string_view existing{"exists"};
     constexpr std::string_view dest_exists{
