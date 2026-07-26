@@ -24,4 +24,9 @@ drum_add_command(
   PRIVATE_LIBRARIES
   tomlplusplus_modules
   TEST_MODULES
-  test/test_validate.cpp)
+  test/test_validate.cpp
+  test/test_discover.cpp
+  test/test_process.cpp
+  test/test_compile.cpp
+  test/test_link.cpp
+  test/test_builder_cmd.cpp)
