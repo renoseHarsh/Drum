@@ -26,9 +26,7 @@ namespace drum::builder_cmd::compile {
       auto obj =
           ("build" / source.lexically_relative("src/")).replace_extension(".o");
 
-      auto dir = obj;
-      dir.remove_filename();
-      fs::create_directories(dir);
+      fs::create_directories(obj.parent_path());
 
       auto result = compile_source(source, obj);
       if (!result.has_value()) {
