@@ -2,6 +2,7 @@ import std;
 
 import parser;
 import new_cmd;
+import builder_cmd;
 
 template <class... Ts> struct overloaded : Ts... {
   using Ts::operator()...;
@@ -17,11 +18,15 @@ int main(int argc, char *argv[]) {
                               },
                               [](const drum::builder_cmd::BuildArgs &arg) {
                                 return drum::builder_cmd::execute(arg);
+                              },
+                              [](const drum::run_cmd::RunArgs &arg) {
+                                return drum::run_cmd::execute(arg);
                               }},
                    result.value());
 
-    if (!res.has_value() && !res.error().empty()) {
-      std::println("{}", res.error());
+    if (!res.has_value()) {
+      if (!res.error().empty())
+        std::println("{}", res.error());
       return 1;
     }
   } else {

@@ -1,0 +1,9 @@
+drum_add_command(
+  NAME
+  run_cmd
+  MODULES
+  src/run_cmd.cppm
+  SOURCES
+  src/run_cmd.cpp
+  PRIVATE_LIBRARIES
+  builder_cmd)

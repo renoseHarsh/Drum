@@ -8,6 +8,7 @@ drum_add_command(
   PUBLIC_LIBRARIES
   new_cmd
   builder_cmd
+  run_cmd
   TEST_SOURCES
   test/test_parser.cpp
   test/test_new.cpp)

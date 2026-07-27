@@ -2,7 +2,8 @@ add_executable(drum)
 
 target_sources(drum PRIVATE src/main.cpp)
 target_include_directories(drum PRIVATE src/)
-target_link_libraries(drum PRIVATE project_warning parser new_cmd)
+target_link_libraries(drum PRIVATE project_warning parser new_cmd builder_cmd
+                                   run_cmd)
 
 if(CMAKE_EXPORT_COMPILE_COMMANDS)
   add_custom_command(

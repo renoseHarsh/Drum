@@ -50,6 +50,8 @@ namespace drum::parser {
       return parse_new_args(argc, argv);
     } else if (cmd == "build") {
       return builder_cmd::BuildArgs{};
+    } else if (cmd == "run") {
+      return run_cmd::RunArgs{};
     }
     return std::unexpected{std::format("Unknown command: {}", cmd)};
   }
