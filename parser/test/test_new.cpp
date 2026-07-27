@@ -12,7 +12,7 @@ namespace drum::parser::test {
     void check_new_args(const std::expected<Command, std::string> &result,
                         new_cmd::NewArgs::PackageType type,
                         std::string_view name) {
-      REQUIRE(result.has_value());
+      REQUIRE(result);
 
       const auto *new_args = std::get_if<new_cmd::NewArgs>(&result.value());
 
@@ -26,7 +26,7 @@ namespace drum::parser::test {
     constexpr const char *argv[] = {arg0, arg_new};
 
     const auto result = parser::parse_arguments(2, argv);
-    REQUIRE_FALSE(result.has_value());
+    REQUIRE_FALSE(result);
     REQUIRE(result.error() == "new command missing package name");
   }
 
@@ -34,7 +34,7 @@ namespace drum::parser::test {
     constexpr const char *argv[] = {arg0, arg_new, "--lib"};
 
     const auto result = parser::parse_arguments(3, argv);
-    REQUIRE_FALSE(result.has_value());
+    REQUIRE_FALSE(result);
     REQUIRE(result.error() == "new command missing package name");
   }
 
@@ -42,7 +42,7 @@ namespace drum::parser::test {
     constexpr const char *argv[] = {arg0, arg_new, "--invalid"};
 
     const auto result = parser::parse_arguments(3, argv);
-    REQUIRE_FALSE(result.has_value());
+    REQUIRE_FALSE(result);
     REQUIRE(result.error() == "Unknown option for new: --invalid");
   }
 
@@ -50,8 +50,7 @@ namespace drum::parser::test {
     constexpr const char *argv[] = {arg0, arg_new, "pkg", "another"};
 
     const auto result = drum::parser::parse_arguments(4, argv);
-
-    REQUIRE_FALSE(result.has_value());
+    REQUIRE_FALSE(result);
     REQUIRE(result.error() == "Unknown arg: another");
   }
 

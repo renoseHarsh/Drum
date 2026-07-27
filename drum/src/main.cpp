@@ -12,7 +12,7 @@ template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 int main(int argc, char *argv[]) {
   if (const auto result = drum::parser::parse_arguments(argc, argv); result) {
 
-    auto res =
+    const auto res =
         std::visit(overloaded{[](const drum::new_cmd::NewArgs &arg) {
                                 return drum::new_cmd::execute(arg);
                               },
@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
                               }},
                    result.value());
 
-    if (!res.has_value()) {
+    if (!res) {
       if (!res.error().empty())
         std::println("{}", res.error());
       return 1;

@@ -25,14 +25,14 @@ namespace drum::new_cmd::integration {
   }; // namespace
 
   TEST_CASE("Valid executable package") {
-    test_util::TestEnvironment env;
+    const test_util::TestEnvironment env;
 
     constexpr std::string_view pkg_name{"exec_pkg"};
+    constexpr NewArgs args{std::string{pkg_name},
+                           NewArgs::PackageType::executable};
 
-    NewArgs args{std::string{pkg_name}, NewArgs::PackageType::executable};
-
-    auto result = execute(args);
-    std::filesystem::path pkg_path{pkg_name};
+    const auto result = execute(args);
+    const std::filesystem::path pkg_path{pkg_name};
 
     check_valid_dir(pkg_path);
     check_valid_file(pkg_path / "drum.toml");
@@ -42,14 +42,14 @@ namespace drum::new_cmd::integration {
   }
 
   TEST_CASE("Valid library package") {
-    test_util::TestEnvironment env;
+    const test_util::TestEnvironment env;
 
     constexpr std::string_view pkg_name{"lib_pkg"};
+    constexpr NewArgs args{std::string{pkg_name},
+                           NewArgs::PackageType::library};
 
-    NewArgs args{std::string{pkg_name}, NewArgs::PackageType::library};
-
-    auto result = execute(args);
-    std::filesystem::path pkg_path{pkg_name};
+    const auto result = execute(args);
+    const std::filesystem::path pkg_path{pkg_name};
 
     check_valid_dir(pkg_path);
     check_valid_file(pkg_path / "drum.toml");
@@ -64,9 +64,10 @@ namespace drum::new_cmd::integration {
     constexpr std::string_view pkg_name{"existing_pkg"};
     std::filesystem::create_directory(pkg_name);
 
-    NewArgs args{std::string{pkg_name}, NewArgs::PackageType::executable};
+    constexpr NewArgs args{std::string{pkg_name},
+                           NewArgs::PackageType::executable};
 
-    auto result = execute(args);
+    const auto result = execute(args);
     REQUIRE_FALSE(result.has_value());
     REQUIRE(result.error() ==
             std::format("Destination '{}' already exists", pkg_name));

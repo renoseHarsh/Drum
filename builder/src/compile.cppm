@@ -11,8 +11,8 @@ namespace drum::builder_cmd::compile {
   namespace {
     std::expected<void, std::string> compile_source(const fs::path &src,
                                                     const fs::path &obj) {
-      std::vector<std::string> args = {"clang++", "-c", src.string(),
-                                       "-Isrc/",  "-o", obj.string()};
+      const std::vector<std::string> args{"clang++", "-c", src.string(),
+                                          "-Isrc/",  "-o", obj.string()};
       return process::run_process(args);
     }
   } // namespace
@@ -23,13 +23,13 @@ namespace drum::builder_cmd::compile {
     std::vector<fs::path> objects{};
 
     for (const auto &source : sources) {
-      auto obj =
+      const auto obj =
           ("build" / source.lexically_relative("src/")).replace_extension(".o");
 
       fs::create_directories(obj.parent_path());
 
-      auto result = compile_source(source, obj);
-      if (!result.has_value()) {
+      const auto result = compile_source(source, obj);
+      if (!result) {
         return std::unexpected{std::move(result).error()};
       }
 

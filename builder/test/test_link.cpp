@@ -14,14 +14,14 @@ namespace fs = std::filesystem;
 
 namespace drum::builder_cmd::link::test {
   TEST_CASE("Links compiled objects into executable") {
-    test_util::TestEnvironment env{};
+    const test_util::TestEnvironment env{};
 
     test_util::write_file("src/main.cpp", "int main() {}");
-    auto objects = compile::compile({"src/main.cpp"});
-    REQUIRE(objects.has_value());
+    const auto objects = compile::compile({"src/main.cpp"});
+    REQUIRE(objects);
 
-    auto result = link::link(objects.value());
-    REQUIRE(result.has_value());
+    const auto result = link::link(objects.value());
+    REQUIRE(result);
     REQUIRE(fs::exists("build/main"));
   }
 } // namespace drum::builder_cmd::link::test

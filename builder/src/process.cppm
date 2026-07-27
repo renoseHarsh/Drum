@@ -21,14 +21,14 @@ namespace drum::builder_cmd::process {
 
     char **envp = *_NSGetEnviron();
     pid_t pid;
-    if (int err
-        = posix_spawnp(&pid, argv[0], nullptr, nullptr, argv.data(), envp)) {
+    if (const int err =
+            posix_spawnp(&pid, argv[0], nullptr, nullptr, argv.data(), envp)) {
       return std::unexpected{
           std::error_code{err, std::generic_category()}.message()};
     }
 
     int wstatus;
-    if (int status = waitpid(pid, &wstatus, 0); status == -1) {
+    if (const int status = waitpid(pid, &wstatus, 0); status == -1) {
       return std::unexpected{
           std::error_code{errno, std::generic_category()}.message()};
     }

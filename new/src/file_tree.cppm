@@ -7,14 +7,16 @@ namespace drum::new_cmd::ft {
     using dirs = std::vector<std::unique_ptr<Node>>;
 
   public:
-    const dirs &children() const;
-    std::string_view get_content() const;
-    std::string_view get_name() const;
     enum class NodeType { File, Directory };
     NodeType type;
+
     Node(std::string_view name, std::string content);
     Node(std::string_view name);
     Node(std::string_view name, std::size_t n);
+
+    const dirs &children() const;
+    std::string_view get_content() const;
+    std::string_view get_name() const;
     Node &push_dir(std::string_view name);
     Node &push_file(std::string_view name, std::string content);
 

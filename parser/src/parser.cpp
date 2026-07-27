@@ -14,14 +14,13 @@ namespace drum::parser {
 
       new_cmd::NewArgs new_args{};
       for (int i{2}; i < argc; i++) {
-        std::string_view arg = argv[i];
+        const std::string_view arg{argv[i]};
         if (arg == "--lib") {
           new_args.pkg_type = new_cmd::NewArgs::PackageType::library;
         } else if (arg.starts_with("--")) {
           return std::unexpected{
               std::format("Unknown option for new: {}", arg)};
         } else if (new_args.pkg_name.empty()) {
-
           if (!std::ranges::all_of(
                   arg, [](char c) { return std::isalpha(c) || c == '_'; }))
             return std::unexpected(std::format("Invalid package name {}", arg));
@@ -45,7 +44,7 @@ namespace drum::parser {
     if (argc <= 1)
       return std::unexpected{"Provide a command"};
 
-    std::string cmd = argv[1];
+    const std::string cmd{argv[1]};
     if (cmd == "new") {
       return parse_new_args(argc, argv);
     } else if (cmd == "build") {

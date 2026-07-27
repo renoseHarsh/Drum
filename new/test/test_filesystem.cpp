@@ -41,45 +41,45 @@ namespace drum::new_cmd::fs::test {
 
     constexpr std::string_view file_name{"single_file.txt"};
     constexpr std::string_view file_content{"single file content"};
-    ft::Node file_tree(file_name, std::string(file_content));
-    auto result = fs::build_file_tree(file_tree);
+    const ft::Node file_tree{file_name, std::string(file_content)};
+    const auto result = fs::build_file_tree(file_tree);
 
-    REQUIRE(result.has_value() == true);
+    REQUIRE(result);
     check_valid_file(file_name, file_content);
   }
 
   TEST_CASE("Empty Directory") {
-    test_util::TestEnvironment env;
+    const test_util::TestEnvironment env;
 
     constexpr std::string_view dir_name{"empty_directory"};
-    ft::Node file_tree(dir_name);
-    auto result = fs::build_file_tree(file_tree);
+    const ft::Node file_tree{dir_name};
+    const auto result = fs::build_file_tree(file_tree);
 
-    REQUIRE(result.has_value());
+    REQUIRE(result);
     check_valid_dir(dir_name);
   }
 
   TEST_CASE("Directory with file") {
-    test_util::TestEnvironment env;
+    const test_util::TestEnvironment env;
 
     constexpr std::string_view dir_name{"dir_with_one_file"};
     constexpr std::string_view file_name{"single_dir_nested_file.txt"};
     constexpr std::string_view file_content{"single dir\nnested file content"};
 
-    ft::Node file_tree(dir_name);
+    ft::Node file_tree{dir_name};
     file_tree.push_file(file_name, std::string(file_content));
-    auto result = fs::build_file_tree(file_tree);
+    const auto result = fs::build_file_tree(file_tree);
 
-    auto root = std::filesystem::path(dir_name);
+    const auto root = std::filesystem::path(dir_name);
 
-    REQUIRE(result.has_value());
+    REQUIRE(result);
     check_valid_dir(root);
 
     check_valid_file(root / file_name, file_content);
   }
 
   TEST_CASE("Nested directories and files") {
-    test_util::TestEnvironment env;
+    const test_util::TestEnvironment env;
 
     constexpr std::string_view root_dir_name{"root_dir"};
 
@@ -95,7 +95,7 @@ namespace drum::new_cmd::fs::test {
     constexpr std::string_view lvl_3_file_name{"lvl_3_file.txt"};
     constexpr std::string_view lvl_3_file_content{"lvl 3\nfile content"};
 
-    ft::Node file_tree(root_dir_name);
+    ft::Node file_tree{root_dir_name};
     auto &lvl_1_dir = file_tree.push_dir(lvl_1_dir_name);
     file_tree.push_file(lvl_1_file_name, std::string(lvl_1_file_content));
 
@@ -105,11 +105,11 @@ namespace drum::new_cmd::fs::test {
     lvl_2_dir.push_dir(lvl_3_dir_name);
     lvl_2_dir.push_file(lvl_3_file_name, std::string(lvl_3_file_content));
 
-    auto result = build_file_tree(file_tree);
+    const auto result = build_file_tree(file_tree);
 
     auto root = std::filesystem::path(root_dir_name);
 
-    REQUIRE(result.has_value());
+    REQUIRE(result);
     check_valid_dir(root);
 
     check_valid_file(root / lvl_1_file_name, lvl_1_file_content);
@@ -126,7 +126,7 @@ namespace drum::new_cmd::fs::test {
   }
 
   TEST_CASE("Root already exists") {
-    test_util::TestEnvironment env;
+    const test_util::TestEnvironment env;
 
     constexpr std::string_view existing{"exists"};
     constexpr std::string_view dest_exists{
@@ -134,10 +134,10 @@ namespace drum::new_cmd::fs::test {
 
     std::filesystem::create_directory(existing);
 
-    ft::Node file_tree(existing);
+    const ft::Node file_tree{existing};
 
-    auto result = fs::build_file_tree(file_tree);
-    REQUIRE_FALSE(result.has_value());
+    const auto result = fs::build_file_tree(file_tree);
+    REQUIRE_FALSE(result);
     REQUIRE(result.error() == dest_exists);
   }
 

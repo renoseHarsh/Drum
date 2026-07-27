@@ -58,18 +58,16 @@ namespace drum::new_cmd::ft::test {
 
   TEST_CASE("Push dir and file") {
     Node tmp_dir(name);
-    tmp_dir.push_dir(name);
-    tmp_dir.push_file(name, "content");
-    const auto &ref = tmp_dir;
+    const auto &new_dir = tmp_dir.push_dir(name);
+    const auto &new_file = tmp_dir.push_file(name, "content");
+    const auto &temp_dir = tmp_dir;
 
-    REQUIRE_NOTHROW(ref.children());
-    REQUIRE(ref.children().size() == 2);
+    REQUIRE_NOTHROW(temp_dir.children());
+    REQUIRE(temp_dir.children().size() == 2);
 
-    const auto &new_dir = *ref.children()[0];
     REQUIRE(new_dir.get_name() == name);
     REQUIRE_NOTHROW(new_dir.children());
 
-    const auto &new_file = *ref.children()[1];
     REQUIRE(new_file.get_name() == name);
     REQUIRE_NOTHROW(new_file.get_content());
     REQUIRE(new_file.get_content() == "content");

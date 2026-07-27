@@ -11,15 +11,15 @@ import builder_cmd;
 
 namespace drum::run_cmd {
   std::expected<void, std::string> execute(const RunArgs &) {
-    if (auto result = builder_cmd::execute({}); !result.has_value()) {
+    if (const auto result = builder_cmd::execute({}); !result) {
       return result;
     }
 
-    std::vector<char *> argv = {const_cast<char *>("build/main"), nullptr};
+    const std::vector<char *> argv{const_cast<char *>("build/main"), nullptr};
 
     execvp("build/main", argv.data());
 
-    int err = errno;
+    const int err = errno;
     return std::unexpected{
         std::error_code{err, std::generic_category()}.message()};
   }

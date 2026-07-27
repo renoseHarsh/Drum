@@ -13,8 +13,8 @@ namespace drum::builder_cmd::validate::test {
 
   namespace {
     void require_error(std::string_view expected) {
-      auto result = validate();
-      REQUIRE_FALSE(result.has_value());
+      const auto result = validate();
+      REQUIRE_FALSE(result);
       REQUIRE(result.error() == expected);
     }
 
@@ -23,29 +23,29 @@ namespace drum::builder_cmd::validate::test {
   TEST_CASE("Missing drum.toml") { require_error("Missing drum.toml"); }
 
   TEST_CASE("Invalid TOML syntax") {
-    test_util::TestEnvironment env{};
+    const test_util::TestEnvironment env{};
 
     test_util::write_file("drum.toml", "[[unclosed");
-    auto result = validate();
-    REQUIRE_FALSE(result.has_value());
+    const auto result = validate();
+    REQUIRE_FALSE(result);
   }
 
   TEST_CASE("Missing name in manifest") {
-    test_util::TestEnvironment env{};
+    const test_util::TestEnvironment env{};
 
     test_util::write_file("drum.toml", "version = \"0.1.0\"\ntype = \"exec\"");
     require_error("Missing name");
   }
 
   TEST_CASE("Missing version in manifest") {
-    test_util::TestEnvironment env{};
+    const test_util::TestEnvironment env{};
 
     test_util::write_file("drum.toml", "name = \"test_pkg\"\ntype = \"exec\"");
     require_error("Missing version");
   }
 
   TEST_CASE("Missing type in manifest") {
-    test_util::TestEnvironment env{};
+    const test_util::TestEnvironment env{};
 
     test_util::write_file("drum.toml",
                           "name = \"test_pkg\"\nversion = \"0.1.0\"");
@@ -53,7 +53,7 @@ namespace drum::builder_cmd::validate::test {
   }
 
   TEST_CASE("Non-string type value") {
-    test_util::TestEnvironment env{};
+    const test_util::TestEnvironment env{};
 
     test_util::write_file(
         "drum.toml", "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = 42");
@@ -61,7 +61,7 @@ namespace drum::builder_cmd::validate::test {
   }
 
   TEST_CASE("Unrecognized type value") {
-    test_util::TestEnvironment env{};
+    const test_util::TestEnvironment env{};
 
     test_util::write_file(
         "drum.toml",
@@ -70,7 +70,7 @@ namespace drum::builder_cmd::validate::test {
   }
 
   TEST_CASE("Exec package missing src directory") {
-    test_util::TestEnvironment env{};
+    const test_util::TestEnvironment env{};
 
     test_util::write_file(
         "drum.toml",
@@ -79,7 +79,7 @@ namespace drum::builder_cmd::validate::test {
   }
 
   TEST_CASE("Exec package missing main.cpp") {
-    test_util::TestEnvironment env{};
+    const test_util::TestEnvironment env{};
 
     test_util::write_file(
         "drum.toml",
@@ -89,19 +89,19 @@ namespace drum::builder_cmd::validate::test {
   }
 
   TEST_CASE("Valid executable package") {
-    test_util::TestEnvironment env{};
+    const test_util::TestEnvironment env{};
 
     test_util::write_file(
         "drum.toml",
         "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"");
     std::filesystem::create_directory("src");
     test_util::write_file("src/main.cpp", "int main() {}");
-    auto result = validate();
-    REQUIRE(result.has_value());
+    const auto result = validate();
+    REQUIRE(result);
   }
 
   TEST_CASE("Lib type not implemented") {
-    test_util::TestEnvironment env{};
+    const test_util::TestEnvironment env{};
 
     test_util::write_file(
         "drum.toml",

@@ -11,7 +11,7 @@ namespace drum::builder_cmd::link {
   namespace {
     std::expected<void, std::string>
     link_objects(const std::vector<fs::path> &objects, const fs::path &output) {
-      std::vector<std::string> args = {"clang++"};
+      std::vector<std::string> args{"clang++"};
       args.reserve(objects.size() + 3);
 
       std::ranges::transform(objects, std::back_inserter(args),
@@ -25,9 +25,9 @@ namespace drum::builder_cmd::link {
 
   std::expected<void, std::string> link(const std::vector<fs::path> &objects) {
     fs::create_directories("build");
-    fs::path output{"build/main"};
+    const fs::path output{"build/main"};
 
-    if (auto result = link_objects(objects, output); !result.has_value()) {
+    if (const auto result = link_objects(objects, output); !result) {
       return std::unexpected{std::move(result).error()};
     }
 

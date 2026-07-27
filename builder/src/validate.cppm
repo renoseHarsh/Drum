@@ -8,12 +8,12 @@ namespace drum::builder_cmd::validate {
   enum class Type { lib, exec };
   namespace {
     std::expected<Type, std::string> parse_manifest() {
-      auto result = toml::parse_file("drum.toml");
-      if (result.failed()) {
+      const auto result = toml::parse_file("drum.toml");
+      if (!result) {
         return std::unexpected{std::string{result.error().description()}};
       }
 
-      auto table = std::move(result).table();
+      const auto table = std::move(result).table();
 
       if (!table.contains("name")) {
         return std::unexpected{"Missing name"};
@@ -27,8 +27,8 @@ namespace drum::builder_cmd::validate {
         return std::unexpected{"Missing type"};
       }
 
-      auto type_str = table["type"].value<std::string_view>();
-      if (!type_str.has_value()) {
+      const auto type_str = table["type"].value<std::string_view>();
+      if (!type_str) {
         return std::unexpected{"Invalid type"};
       }
 
@@ -52,8 +52,8 @@ namespace drum::builder_cmd::validate {
       return std::unexpected{"Missing drum.toml"};
     }
 
-    auto type_result = parse_manifest();
-    if (!type_result.has_value()) {
+    const auto type_result = parse_manifest();
+    if (!type_result) {
       return type_result;
     }
 

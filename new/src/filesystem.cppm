@@ -6,11 +6,10 @@ import :file_tree;
 
 namespace drum::new_cmd::fs {
   namespace {
-    constexpr std::string_view create_file_fail = "Failed to create file '{}'";
-    constexpr std::string_view write_file_fail = "Failed to write to file '{}'";
-    constexpr std::string_view create_dir_fail =
-        "Failed to create dir '{}': {}";
-    constexpr std::string_view dest_exists = "Destination '{}' already exists";
+    constexpr std::string_view create_file_fail{"Failed to create file '{}'"};
+    constexpr std::string_view write_file_fail{"Failed to write to file '{}'"};
+    constexpr std::string_view create_dir_fail{"Failed to create dir '{}': {}"};
+    constexpr std::string_view dest_exists{"Destination '{}' already exists"};
 
     std::expected<void, std::string>
     build_artifacts(const ft::Node &file_tree, std::filesystem::path path) {
@@ -38,7 +37,7 @@ namespace drum::new_cmd::fs {
             std::format(create_dir_fail, file_tree.get_name(), ec.message())};
 
       for (const auto &nodes : file_tree.children()) {
-        if (auto result = build_artifacts(*nodes, path); !result.has_value()) {
+        if (const auto result = build_artifacts(*nodes, path); !result) {
           return result;
         }
       }
@@ -49,7 +48,7 @@ namespace drum::new_cmd::fs {
 
   std::expected<void, std::string> build_file_tree(const ft::Node &file_tree) {
 
-    auto root = file_tree.get_name();
+    const auto root = file_tree.get_name();
 
     std::error_code ec;
     if (std::filesystem::exists(root, ec))
