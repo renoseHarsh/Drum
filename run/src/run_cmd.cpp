@@ -11,10 +11,11 @@ import manifest;
 
 namespace drum::run_cmd {
   std::expected<void, std::string> execute(const RunArgs &,
-                                           const manifest::Manifest &) {
-    const std::vector<char *> argv{const_cast<char *>("build/main"), nullptr};
+                                           const manifest::Manifest &manifest) {
+    const std::string output = std::format("build/{}", manifest.name);
+    const std::vector<char *> argv{const_cast<char *>(output.data()), nullptr};
 
-    execvp("build/main", argv.data());
+    execvp(output.data(), argv.data());
 
     const int err = errno;
     return std::unexpected{

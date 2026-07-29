@@ -38,7 +38,8 @@ namespace drum::builder_cmd {
       return std::unexpected{std::move(obj_result).error()};
     }
 
-    if (const auto result = link::link(obj_result.value()); !result) {
+    if (const auto result = link::link(obj_result.value(), manifest.name);
+        !result) {
       return std::unexpected{std::move(result).error()};
     }
 

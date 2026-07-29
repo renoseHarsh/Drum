@@ -23,11 +23,12 @@ namespace drum::builder_cmd::link {
     }
   } // namespace
 
-  std::expected<void, std::string> link(const std::vector<fs::path> &objects) {
+  std::expected<void, std::string> link(const std::vector<fs::path> &objects,
+                                        const std::string_view output) {
     fs::create_directories("build");
-    const fs::path output{"build/main"};
+    const fs::path output_path = fs::path{"build"} / fs::path{output};
 
-    if (const auto result = link_objects(objects, output); !result) {
+    if (const auto result = link_objects(objects, output_path); !result) {
       return std::unexpected{std::move(result).error()};
     }
 

@@ -41,9 +41,10 @@ namespace drum::builder_cmd::test {
         "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"");
     test_util::write_file("src/main.cpp", "int main() {}");
 
-    const auto result = execute({}, {.type = manifest::Type::exec});
+    const auto result =
+        execute({}, {.name = "demo", .type = manifest::Type::exec});
     REQUIRE(result);
-    REQUIRE(fs::exists("build/main"));
+    REQUIRE(fs::exists("build/demo"));
   }
 
 } // namespace drum::builder_cmd::test

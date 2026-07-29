@@ -20,7 +20,7 @@ namespace drum::builder_cmd::link::test {
     const auto objects = compile::compile({"src/main.cpp"});
     REQUIRE(objects);
 
-    const auto result = link::link(objects.value());
+    const auto result = link::link(objects.value(), "main");
     REQUIRE(result);
     REQUIRE(fs::exists("build/main"));
   }
