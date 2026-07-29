@@ -49,16 +49,16 @@ namespace drum::manifest::test {
   TEST_CASE("Non-string name value") {
     const test_util::TestEnvironment env{};
 
-    test_util::write_file(
-        "drum.toml", "name = 42\nversion = \"0.1.0\"\ntype = \"exec\"");
+    test_util::write_file("drum.toml",
+                          "name = 42\nversion = \"0.1.0\"\ntype = \"exec\"");
     require_error("Invalid name");
   }
 
   TEST_CASE("Non-string version value") {
     const test_util::TestEnvironment env{};
 
-    test_util::write_file(
-        "drum.toml", "name = \"test_pkg\"\nversion = 42\ntype = \"exec\"");
+    test_util::write_file("drum.toml",
+                          "name = \"test_pkg\"\nversion = 42\ntype = \"exec\"");
     require_error("Invalid version");
   }
 
@@ -85,12 +85,12 @@ namespace drum::manifest::test {
     test_util::write_file(
         "drum.toml",
         "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"");
-    auto result = parse();
+    const auto result = parse();
     REQUIRE(result);
-    const auto value = std::move(result).value();
-    REQUIRE(value.type == Type::exec);
-    REQUIRE(value.name == "test_pkg");
-    REQUIRE(value.version == "0.1.0");
+    const auto &manifest = result.value();
+    REQUIRE(manifest.type == Type::exec);
+    REQUIRE(manifest.name == "test_pkg");
+    REQUIRE(manifest.version == "0.1.0");
   }
 
   TEST_CASE("Valid lib manifest") {
@@ -98,12 +98,12 @@ namespace drum::manifest::test {
 
     test_util::write_file(
         "drum.toml", "name = \"lib_pkg\"\nversion = \"0.2.0\"\ntype = \"lib\"");
-    auto result = parse();
+    const auto result = parse();
     REQUIRE(result);
-    const auto value = std::move(result).value();
-    REQUIRE(value.type == Type::lib);
-    REQUIRE(value.name == "lib_pkg");
-    REQUIRE(value.version == "0.2.0");
+    const auto &manifest = result.value();
+    REQUIRE(manifest.type == Type::lib);
+    REQUIRE(manifest.name == "lib_pkg");
+    REQUIRE(manifest.version == "0.2.0");
   }
 
 } // namespace drum::manifest::test
