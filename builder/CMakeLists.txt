@@ -16,4 +16,5 @@ drum_add_command(
   test/test_process.cpp
   test/test_compile.cpp
   test/test_link.cpp
+  TEST_SOURCES
   test/test_builder_cmd.cpp)

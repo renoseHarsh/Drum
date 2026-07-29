@@ -12,5 +12,3 @@ drum_add_command(
   TEST_SOURCES
   test/test_parser.cpp
   test/test_new.cpp)
-
-target_link_libraries(parser PUBLIC new_cmd)

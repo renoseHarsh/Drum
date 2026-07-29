@@ -1,8 +1,4 @@
-module;
-
 #include <catch2/catch_test_macros.hpp>
-
-module builder_cmd:test_builder_cmd;
 
 import std;
 

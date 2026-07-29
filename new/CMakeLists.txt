@@ -12,4 +12,5 @@ drum_add_command(
   test/test_file_tree.cpp
   test/test_blueprint.cpp
   test/test_filesystem.cpp
+  TEST_SOURCES
   test/integration.cpp)
