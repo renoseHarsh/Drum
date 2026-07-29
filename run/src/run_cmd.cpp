@@ -7,14 +7,11 @@ module run_cmd;
 
 import std;
 
-import builder_cmd;
+import manifest;
 
 namespace drum::run_cmd {
-  std::expected<void, std::string> execute(const RunArgs &) {
-    if (const auto result = builder_cmd::execute({}); !result) {
-      return result;
-    }
-
+  std::expected<void, std::string> execute(const RunArgs &,
+                                           const manifest::Manifest &) {
     const std::vector<char *> argv{const_cast<char *>("build/main"), nullptr};
 
     execvp("build/main", argv.data());

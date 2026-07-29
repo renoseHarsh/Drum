@@ -2,16 +2,33 @@ module builder_cmd;
 
 import std;
 
-import :validate;
 import :discover;
 import :compile;
 import :link;
 
+import manifest;
+
 namespace drum::builder_cmd {
-  std::expected<void, std::string> execute(const BuildArgs &_) {
-    const auto pkg = validate::validate();
-    if (!pkg) {
-      return std::unexpected{std::move(pkg).error()};
+
+  namespace {
+    bool is_valid_exec_dir() {
+      return std::filesystem::is_directory("src") &&
+             std::filesystem::is_regular_file("src/main.cpp");
+    }
+  } // namespace
+
+  std::expected<void, std::string> execute(const BuildArgs &,
+                                           const manifest::Manifest &manifest) {
+
+    switch (manifest.type) {
+    case manifest::Type::exec:
+      if (!is_valid_exec_dir()) {
+        return std::unexpected{"Invalid executable package layout"};
+      }
+      break;
+    case manifest::Type::lib:
+      return std::unexpected{"Not implemented lib"};
+      break;
     }
 
     const auto src_result = discover::discover();

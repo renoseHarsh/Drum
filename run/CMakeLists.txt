@@ -5,5 +5,5 @@ drum_add_command(
   src/run_cmd.cppm
   SOURCES
   src/run_cmd.cpp
-  PRIVATE_LIBRARIES
-  builder_cmd)
+  PUBLIC_LIBRARIES
+  manifest)
