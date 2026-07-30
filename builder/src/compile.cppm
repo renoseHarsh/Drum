@@ -3,6 +3,7 @@ module builder_cmd:compile;
 import std;
 
 import :process;
+import :dependency;
 
 namespace fs = std::filesystem;
 
@@ -11,9 +12,33 @@ namespace drum::builder_cmd::compile {
   namespace {
     std::expected<void, std::string> compile_source(const fs::path &src,
                                                     const fs::path &obj) {
-      const std::vector<std::string> args{"clang++", "-c", src.string(),
-                                          "-Isrc/",  "-o", obj.string()};
+      const std::vector<std::string> args{
+          "clang++", "-c", src.string(), "-Isrc/", "-o", obj.string(), "-MMD"};
       return process::run_process(args);
+    }
+
+    bool object_is_stale(const fs::path &object) {
+      auto dependency = object;
+      dependency.replace_extension(".d");
+
+      const auto dependencies_result = dependency::get_dependencies(dependency);
+      if (!dependencies_result)
+        return true;
+
+      const auto &[target, dependencies] = dependencies_result.value();
+
+      if (object != target)
+        return true;
+
+      std::error_code ec{};
+      const auto last_write_obj = fs::last_write_time(object, ec);
+      if (ec)
+        return true;
+
+      return std::ranges::any_of(dependencies, [&](const auto &dep) {
+        const auto last_dep_write = fs::last_write_time(dep, ec);
+        return ec || (last_dep_write > last_write_obj);
+      });
     }
   } // namespace
 
@@ -21,12 +46,18 @@ namespace drum::builder_cmd::compile {
   compile(const std::vector<fs::path> &sources) {
 
     std::vector<fs::path> objects{};
+    objects.reserve(sources.size());
 
     for (const auto &source : sources) {
-      const auto obj =
-          ("build" / source.lexically_relative("src/")).replace_extension(".o");
+      fs::path obj{"build"};
+      obj /= source.lexically_relative("src/");
+      obj.replace_extension(".o");
 
-      fs::create_directories(obj.parent_path());
+      std::error_code ec;
+      if (!fs::exists(obj, ec) || object_is_stale(obj)) {
+        fs::create_directories(obj.parent_path(), ec);
+        if (ec)
+          return std::unexpected{"Error in creating build directory"};
 
         if (auto result = compile_source(source, obj); !result) {
           return std::unexpected{std::move(result).error()};

@@ -25,11 +25,27 @@ namespace drum::builder_cmd::link {
 
   std::expected<void, std::string> link(const std::vector<fs::path> &objects,
                                         const std::string_view output) {
-    fs::create_directories("build");
+
+    std::error_code ec;
+    fs::create_directories("build", ec);
+    if (ec)
+      return std::unexpected{"unexpected error " + ec.message()};
+
     const fs::path output_path = fs::path{"build"} / fs::path{output};
 
-    if (const auto result = link_objects(objects, output_path); !result) {
-      return std::unexpected{std::move(result).error()};
+    bool needs_link = !fs::exists(output_path, ec);
+    if (!needs_link) {
+      const auto output_last_created = fs::last_write_time(output_path, ec);
+      if (ec || std::ranges::any_of(objects, [&](const auto &obj) {
+            return fs::last_write_time(obj, ec) > output_last_created;
+          }))
+        needs_link = true;
+    }
+
+    if (needs_link) {
+      if (auto result = link_objects(objects, output_path); !result) {
+        return std::unexpected{std::move(result).error()};
+      }
     }
 
     return {};

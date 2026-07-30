@@ -7,6 +7,7 @@ drum_add_command(
   src/compile.cppm
   src/link.cppm
   src/process.cppm
+  src/dependency.cppm
   SOURCES
   src/builder_cmd.cpp
   PUBLIC_LIBRARIES

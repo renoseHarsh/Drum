@@ -34,7 +34,7 @@ namespace drum::builder_cmd {
 
     const auto src_result = discover::discover();
 
-    auto obj_result = compile::compile(src_result);
+    auto obj_result = compile::compile(src_result.value());
     if (!obj_result) {
       return std::unexpected{std::move(obj_result).error()};
     }
