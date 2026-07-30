@@ -28,9 +28,9 @@ namespace drum::builder_cmd::compile {
 
       fs::create_directories(obj.parent_path());
 
-      const auto result = compile_source(source, obj);
-      if (!result) {
-        return std::unexpected{std::move(result).error()};
+        if (auto result = compile_source(source, obj); !result) {
+          return std::unexpected{std::move(result).error()};
+        }
       }
 
       objects.push_back(std::move(obj));

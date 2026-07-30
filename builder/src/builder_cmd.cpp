@@ -33,13 +33,12 @@ namespace drum::builder_cmd {
 
     const auto src_result = discover::discover();
 
-    const auto obj_result = compile::compile(src_result);
+    auto obj_result = compile::compile(src_result);
     if (!obj_result) {
       return std::unexpected{std::move(obj_result).error()};
     }
 
-    if (const auto result = link::link(obj_result.value(), manifest.name);
-        !result) {
+    if (auto result = link::link(obj_result.value(), manifest.name); !result) {
       return std::unexpected{std::move(result).error()};
     }
 
