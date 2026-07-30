@@ -12,8 +12,9 @@ namespace drum::builder_cmd {
 
   namespace {
     bool is_valid_exec_dir() {
-      return std::filesystem::is_directory("src") &&
-             std::filesystem::is_regular_file("src/main.cpp");
+      std::error_code ec{};
+      return std::filesystem::is_directory("src", ec) &&
+             std::filesystem::is_regular_file("src/main.cpp", ec);
     }
   } // namespace
 

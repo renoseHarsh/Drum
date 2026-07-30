@@ -54,6 +54,9 @@ namespace drum::new_cmd::fs {
     if (std::filesystem::exists(root, ec))
       return std::unexpected{std::format(dest_exists, file_tree.get_name())};
 
-    return build_artifacts(file_tree, std::filesystem::current_path());
+    const auto current_path = std::filesystem::current_path(ec);
+    if (ec)
+      return std::unexpected{"unexpected error " + ec.message()};
+    return build_artifacts(file_tree, current_path);
   }
 } // namespace drum::new_cmd::fs

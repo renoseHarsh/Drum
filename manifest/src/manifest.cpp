@@ -6,7 +6,8 @@ import tomlplusplus;
 
 namespace drum::manifest {
   std::expected<Manifest, std::string> parse() {
-    if (!std::filesystem::exists("drum.toml")) {
+    std::error_code ec{};
+    if (!std::filesystem::exists("drum.toml", ec)) {
       return std::unexpected{"Missing drum.toml"};
     }
     const auto result = toml::parse_file("drum.toml");
