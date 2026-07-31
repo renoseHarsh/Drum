@@ -7,6 +7,7 @@ module builder_cmd:test_discover;
 import std;
 
 import :discover;
+
 import test_util;
 
 namespace fs = std::filesystem;

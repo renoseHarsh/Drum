@@ -44,7 +44,6 @@ namespace drum::builder_cmd::compile {
 
   std::expected<std::vector<fs::path>, std::string>
   compile(const std::vector<fs::path> &sources) {
-
     std::vector<fs::path> objects{};
     objects.reserve(sources.size());
 
