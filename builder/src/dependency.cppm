@@ -38,7 +38,9 @@ namespace drum::builder_cmd::dependency {
     if (colon == std::string::npos)
       return std::nullopt;
 
-    std::string target = dependency_text.substr(0, colon);
+    const auto start = dependency_text.find_first_not_of(' ');
+    std::string target = dependency_text.substr(start, colon - start);
+    target.erase(target.find_last_not_of(' ') + 1);
     std::string_view dependency_view =
         std::string_view{dependency_text}.substr(colon + 1);
     auto filter_view = dependency_view | std::views::split(' ') |
