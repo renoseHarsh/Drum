@@ -5,16 +5,24 @@ import std;
 import :discover;
 import :compile;
 import :link;
+import :archive;
 
 import manifest;
+
+namespace fs = std::filesystem;
 
 namespace drum::builder_cmd {
 
   namespace {
     bool is_valid_exec_dir() {
       std::error_code ec{};
-      return std::filesystem::is_directory("src", ec) &&
-             std::filesystem::is_regular_file("src/main.cpp", ec);
+      return fs::is_directory("src", ec) &&
+             fs::is_regular_file("src/main.cpp", ec);
+    }
+
+    bool is_valid_lib_dir() {
+      std::error_code ec{};
+      return fs::is_directory("src", ec) && fs::is_directory("include");
     }
   } // namespace
 
@@ -28,21 +36,28 @@ namespace drum::builder_cmd {
       }
       break;
     case manifest::Type::lib:
-      return std::unexpected{"Not implemented lib"};
+      if (!is_valid_lib_dir()) {
+        return std::unexpected{"Invalid executable package layout"};
+      }
       break;
     }
 
     const auto src_result = discover::discover();
 
-    auto obj_result = compile::compile(src_result.value());
+    auto obj_result = compile::compile(src_result.value(), manifest);
     if (!obj_result) {
       return std::unexpected{std::move(obj_result).error()};
     }
 
-    if (auto result = link::link(obj_result.value(), manifest.name); !result) {
-      return std::unexpected{std::move(result).error()};
+    switch (manifest.type) {
+    case manifest::Type::exec:
+      return link::link(obj_result.value(), manifest.name);
+      break;
+    case manifest::Type::lib:
+      return archive::archive(obj_result.value(), manifest.name);
+      break;
     }
 
     return {};
-  }
+  } // namespace drum::builder_cmd
 } // namespace drum::builder_cmd

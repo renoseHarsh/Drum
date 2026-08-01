@@ -5,15 +5,20 @@ import std;
 import :process;
 import :dependency;
 
+import manifest;
+
 namespace fs = std::filesystem;
 
 namespace drum::builder_cmd::compile {
 
   namespace {
-    std::expected<void, std::string> compile_source(const fs::path &src,
-                                                    const fs::path &obj) {
-      const std::vector<std::string> args{
+    std::expected<void, std::string>
+    compile_source(const fs::path &src, const fs::path &obj, bool is_lib) {
+      std::vector<std::string> args{
           "clang++", "-c", src.string(), "-Isrc/", "-o", obj.string(), "-MMD"};
+      if (is_lib) {
+        args.push_back("-Iinclude/");
+      }
       return process::run_process(args);
     }
 
@@ -43,7 +48,8 @@ namespace drum::builder_cmd::compile {
   } // namespace
 
   std::expected<std::vector<fs::path>, std::string>
-  compile(const std::vector<fs::path> &sources) {
+  compile(const std::vector<fs::path> &sources,
+          const manifest::Manifest &manifest) {
     std::vector<fs::path> objects{};
     objects.reserve(sources.size());
 
@@ -58,7 +64,9 @@ namespace drum::builder_cmd::compile {
         if (ec)
           return std::unexpected{"Error in creating build directory"};
 
-        if (auto result = compile_source(source, obj); !result) {
+        if (auto result = compile_source(source, obj,
+                                         manifest.type == manifest::Type::lib);
+            !result) {
           return std::unexpected{std::move(result).error()};
         }
       }
