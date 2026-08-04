@@ -4,6 +4,7 @@ import std;
 
 import :process;
 import :log;
+import :cache;
 
 namespace fs = std::filesystem;
 
@@ -26,33 +27,22 @@ namespace drum::builder_cmd::link {
 
   std::expected<void, std::string> link(const std::vector<fs::path> &objects,
                                         std::string_view output) {
-
-    std::error_code ec;
-    fs::create_directories("build", ec);
-    if (ec)
-      return std::unexpected{"unexpected error " + ec.message()};
+    if (auto result = cache::ensure_build_dir(); !result)
+      return result;
 
     if (objects.empty()) {
       return {};
     }
 
-    const fs::path output_path = fs::path{"build"} / fs::path{output};
+    fs::path output_path = "build";
+    output_path /= output;
 
-    bool needs_link = !fs::exists(output_path, ec);
-    if (!needs_link) {
-      const auto output_last_created = fs::last_write_time(output_path, ec);
-      if (ec || std::ranges::any_of(objects, [&](const auto &obj) {
-            return fs::last_write_time(obj, ec) > output_last_created;
-          }))
-        needs_link = true;
+    if (!cache::output_is_stale(output_path, objects)) {
+      log::cache_hit(output_path);
+      return {};
     }
 
-    if (needs_link) {
-      log::link(output_path);
-      return link_objects(objects, output_path);
-    }
-    log::cache_hit(output_path);
-
-    return {};
+    log::link(output_path);
+    return link_objects(objects, output_path);
   }
 } // namespace drum::builder_cmd::link

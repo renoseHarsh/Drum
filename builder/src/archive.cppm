@@ -4,6 +4,7 @@ import std;
 
 import :process;
 import :log;
+import :cache;
 
 namespace fs = std::filesystem;
 
@@ -26,10 +27,8 @@ namespace drum::builder_cmd::archive {
 
   std::expected<void, std::string> archive(const std::vector<fs::path> &objects,
                                            std::string_view output) {
-    std::error_code ec;
-    fs::create_directories("build", ec);
-    if (ec)
-      return std::unexpected{"unexpected error " + ec.message()};
+    if (auto result = cache::ensure_build_dir(); !result)
+      return result;
 
     if (objects.empty()) {
       return {};
@@ -39,23 +38,18 @@ namespace drum::builder_cmd::archive {
     output_path /= output;
     output_path.replace_extension(".a");
 
-    bool needs_archive = !fs::exists(output_path, ec);
-    if (!needs_archive) {
-      const auto output_last_created = fs::last_write_time(output_path, ec);
-      if (ec || std::ranges::any_of(objects, [&](const auto &obj) {
-            return fs::last_write_time(obj, ec) > output_last_created;
-          }))
-        needs_archive = true;
+    if (!cache::output_is_stale(output_path, objects)) {
+      log::cache_hit(output_path);
+      return {};
     }
 
-    if (needs_archive) {
-      fs::remove(output_path, ec);
-      log::archive(output_path);
-      return archive_objects(objects, output_path);
-    }
-    log::cache_hit(output_path);
+    std::error_code ec;
+    fs::remove(output_path, ec);
+    if (ec)
+      return std::unexpected{"unexpected error " + ec.message()};
 
-    return {};
+    log::archive(output_path);
+    return archive_objects(objects, output_path);
   }
 
 } // namespace drum::builder_cmd::archive
