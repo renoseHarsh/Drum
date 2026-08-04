@@ -4,6 +4,7 @@ import std;
 
 import :process;
 import :dependency;
+import :log;
 
 import manifest;
 
@@ -63,7 +64,8 @@ namespace drum::builder_cmd::compile {
       obj.replace_extension(".o");
 
       std::error_code ec;
-      if (!fs::exists(obj, ec) || object_is_stale(obj)) {
+      if (!fs::exists(obj, ec) || object_is_stale(obj, manifest.timestamp)) {
+        log::compile(obj);
         fs::create_directories(obj.parent_path(), ec);
         if (ec)
           return std::unexpected{"Error in creating build directory"};
@@ -73,7 +75,8 @@ namespace drum::builder_cmd::compile {
             !result) {
           return std::unexpected{std::move(result).error()};
         }
-      }
+      } else
+        log::cache_hit(obj);
 
       objects.push_back(std::move(obj));
     }

@@ -3,6 +3,7 @@ module builder_cmd:link;
 import std;
 
 import :process;
+import :log;
 
 namespace fs = std::filesystem;
 
@@ -46,8 +47,11 @@ namespace drum::builder_cmd::link {
         needs_link = true;
     }
 
-    if (needs_link)
+    if (needs_link) {
+      log::link(output_path);
       return link_objects(objects, output_path);
+    }
+    log::cache_hit(output_path);
 
     return {};
   }

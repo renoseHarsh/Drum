@@ -3,6 +3,7 @@ module builder_cmd:archive;
 import std;
 
 import :process;
+import :log;
 
 namespace fs = std::filesystem;
 
@@ -49,8 +50,10 @@ namespace drum::builder_cmd::archive {
 
     if (needs_archive) {
       fs::remove(output_path, ec);
+      log::archive(output_path);
       return archive_objects(objects, output_path);
     }
+    log::cache_hit(output_path);
 
     return {};
   }
