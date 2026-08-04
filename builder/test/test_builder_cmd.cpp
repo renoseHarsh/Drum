@@ -60,7 +60,7 @@ namespace drum::builder_cmd::test {
     const auto result =
         execute({}, {.name = "demo", .type = manifest::Type::lib});
     REQUIRE(result);
-    REQUIRE(fs::exists("build/demo"));
+    REQUIRE(fs::exists("build/demo.a"));
   }
 
   TEST_CASE("Compile failure propagates from pipeline") {

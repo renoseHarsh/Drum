@@ -34,7 +34,9 @@ namespace drum::builder_cmd::archive {
       return {};
     }
 
-    const fs::path output_path = fs::path{"build"} / fs::path{output};
+    fs::path output_path = "build";
+    output_path /= output;
+    output_path.replace_extension(".a");
 
     bool needs_archive = !fs::exists(output_path, ec);
     if (!needs_archive) {
