@@ -56,6 +56,18 @@ namespace drum::builder_cmd::compile::test {
     REQUIRE((fs::last_write_time("build/main.o") == baseline));
   }
 
+  TEST_CASE("Recompiles when manifest is newer than object") {
+    const test_util::TestEnvironment env{};
+    setup();
+
+    const manifest::Manifest future_manifest{"test", "0.1.0",
+                                             manifest::Type::exec, future};
+    const auto baseline = fs::last_write_time("build/main.o");
+    compile({"src/main.cpp"}, future_manifest);
+
+    REQUIRE((fs::last_write_time("build/main.o") > baseline));
+  }
+
   TEST_CASE("Recompiles when source file is newer than object") {
     const test_util::TestEnvironment env{};
     setup();

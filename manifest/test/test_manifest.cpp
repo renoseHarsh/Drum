@@ -93,6 +93,18 @@ namespace drum::manifest::test {
     REQUIRE(manifest.version == "0.1.0");
   }
 
+  TEST_CASE("Valid manifest records drum.toml timestamp") {
+    const test_util::TestEnvironment env{};
+
+    test_util::write_file(
+        "drum.toml",
+        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"");
+    const auto result = parse();
+    REQUIRE(result);
+    REQUIRE((result.value().timestamp ==
+             std::filesystem::last_write_time("drum.toml")));
+  }
+
   TEST_CASE("Valid lib manifest") {
     const test_util::TestEnvironment env{};
 

@@ -22,7 +22,16 @@ namespace drum::builder_cmd::compile {
       return process::run_process(args);
     }
 
-    bool object_is_stale(const fs::path &object) {
+    bool object_is_stale(const fs::path &object,
+                         const fs::file_time_type &manifest_timestamp) {
+      std::error_code ec{};
+      const auto last_write_obj = fs::last_write_time(object, ec);
+      if (ec)
+        return true;
+
+      if (manifest_timestamp > last_write_obj)
+        return true;
+
       auto dependency = object;
       dependency.replace_extension(".d");
 
@@ -33,11 +42,6 @@ namespace drum::builder_cmd::compile {
       const auto &[target, dependencies] = dependencies_result.value();
 
       if (object != target)
-        return true;
-
-      std::error_code ec{};
-      const auto last_write_obj = fs::last_write_time(object, ec);
-      if (ec)
         return true;
 
       return std::ranges::any_of(dependencies, [&](const auto &dep) {
