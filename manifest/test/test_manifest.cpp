@@ -88,7 +88,7 @@ namespace drum::manifest::test {
     const auto result = parse();
     REQUIRE(result);
     const auto &manifest = result.value();
-    REQUIRE(manifest.type == Type::exec);
+    REQUIRE(manifest.type == Manifest::Type::exec);
     REQUIRE(manifest.name == "test_pkg");
     REQUIRE(manifest.version == "0.1.0");
   }
@@ -113,7 +113,7 @@ namespace drum::manifest::test {
     const auto result = parse();
     REQUIRE(result);
     const auto &manifest = result.value();
-    REQUIRE(manifest.type == Type::lib);
+    REQUIRE(manifest.type == Manifest::Type::lib);
     REQUIRE(manifest.name == "lib_pkg");
     REQUIRE(manifest.version == "0.2.0");
   }

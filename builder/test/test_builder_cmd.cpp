@@ -11,7 +11,7 @@ namespace drum::builder_cmd::test {
   TEST_CASE("Exec package missing src directory") {
     const test_util::TestEnvironment env{};
 
-    const auto result = execute({}, {.type = manifest::Type::exec});
+    const auto result = execute({}, {.type = manifest::Manifest::Type::exec});
     REQUIRE_FALSE(result);
     REQUIRE(result.error() == "Invalid executable package layout");
   }
@@ -20,7 +20,7 @@ namespace drum::builder_cmd::test {
     const test_util::TestEnvironment env{};
 
     fs::create_directory("src");
-    const auto result = execute({}, {.type = manifest::Type::exec});
+    const auto result = execute({}, {.type = manifest::Manifest::Type::exec});
     REQUIRE_FALSE(result);
     REQUIRE(result.error() == "Invalid executable package layout");
   }
@@ -30,7 +30,7 @@ namespace drum::builder_cmd::test {
 
     fs::create_directory("src");
     const auto result =
-        execute({}, {.name = "demo", .type = manifest::Type::lib});
+        execute({}, {.name = "demo", .type = manifest::Manifest::Type::lib});
     REQUIRE_FALSE(result);
     REQUIRE(result.error() == "Invalid executable package layout");
   }
@@ -44,7 +44,7 @@ namespace drum::builder_cmd::test {
     test_util::write_file("src/main.cpp", "int main() {}");
 
     const auto result =
-        execute({}, {.name = "demo", .type = manifest::Type::exec});
+        execute({}, {.name = "demo", .type = manifest::Manifest::Type::exec});
     REQUIRE(result);
     REQUIRE(fs::exists("build/demo"));
   }
@@ -58,7 +58,7 @@ namespace drum::builder_cmd::test {
                           "int add(int a, int b) { return a + b; }\n");
 
     const auto result =
-        execute({}, {.name = "demo", .type = manifest::Type::lib});
+        execute({}, {.name = "demo", .type = manifest::Manifest::Type::lib});
     REQUIRE(result);
     REQUIRE(fs::exists("build/demo.a"));
   }
@@ -68,7 +68,7 @@ namespace drum::builder_cmd::test {
 
     test_util::write_file("src/main.cpp", "int main() { syntax error\n");
     const auto result =
-        execute({}, {.name = "demo", .type = manifest::Type::exec});
+        execute({}, {.name = "demo", .type = manifest::Manifest::Type::exec});
     REQUIRE_FALSE(result);
   }
 
@@ -80,7 +80,7 @@ namespace drum::builder_cmd::test {
     test_util::write_file("src/core/util.cpp", "void util() {}\n");
 
     const auto result =
-        execute({}, {.name = "demo", .type = manifest::Type::exec});
+        execute({}, {.name = "demo", .type = manifest::Manifest::Type::exec});
     REQUIRE(result);
     REQUIRE(fs::exists("build/main.o"));
     REQUIRE(fs::exists("build/core/util.o"));

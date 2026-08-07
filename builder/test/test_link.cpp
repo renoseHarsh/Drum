@@ -16,7 +16,7 @@ namespace fs = std::filesystem;
 namespace drum::builder_cmd::link::test {
   namespace {
     constexpr manifest::Manifest manifest{"test", "0.1.0",
-                                          manifest::Type::exec};
+                                          manifest::Manifest::Type::exec};
     using clock = fs::file_time_type::clock;
     const fs::file_time_type past = clock::now() - std::chrono::seconds{10};
   }; // namespace

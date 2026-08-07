@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
                        return std::unexpected(std::move(manifest).error());
                      }
                      const auto &m = manifest.value();
-                     if (m.type == drum::manifest::Type::lib) {
+                     if (m.type == drum::manifest::Manifest::Type::lib) {
                        return std::unexpected{"Can't run a library package"};
                      }
 

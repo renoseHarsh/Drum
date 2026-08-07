@@ -5,8 +5,8 @@ import std;
 import tomlplusplus;
 
 export namespace drum::manifest {
-  enum class Type { lib, exec };
   struct Manifest {
+    enum class Type { lib, exec };
     std::string name{};
     std::string version{};
     Type type{};

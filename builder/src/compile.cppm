@@ -70,8 +70,8 @@ namespace drum::builder_cmd::compile {
         if (ec)
           return std::unexpected{"Error in creating build directory"};
 
-        if (auto result = compile_source(source, obj,
-                                         manifest.type == manifest::Type::lib);
+        if (auto result = compile_source(
+                source, obj, manifest.type == manifest::Manifest::Type::lib);
             !result) {
           return std::unexpected{std::move(result).error()};
         }

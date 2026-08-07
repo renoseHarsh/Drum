@@ -52,11 +52,11 @@ namespace drum::manifest {
           std::format("Failed to read drum.toml timestamp: {}", ec.message())};
     }
 
-    Type type;
+    Manifest::Type type;
     if (type_result.value() == "exec") {
-      type = Type::exec;
+      type = Manifest::Type::exec;
     } else if (type_result.value() == "lib") {
-      type = Type::lib;
+      type = Manifest::Type::lib;
     } else {
       return std::unexpected{"Invalid type"};
     }

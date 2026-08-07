@@ -30,12 +30,12 @@ namespace drum::builder_cmd {
                                            const manifest::Manifest &manifest) {
 
     switch (manifest.type) {
-    case manifest::Type::exec:
+    case manifest::Manifest::Type::exec:
       if (!is_valid_exec_dir()) {
         return std::unexpected{"Invalid executable package layout"};
       }
       break;
-    case manifest::Type::lib:
+    case manifest::Manifest::Type::lib:
       if (!is_valid_lib_dir()) {
         return std::unexpected{"Invalid executable package layout"};
       }
@@ -50,10 +50,10 @@ namespace drum::builder_cmd {
     }
 
     switch (manifest.type) {
-    case manifest::Type::exec:
+    case manifest::Manifest::Type::exec:
       return link::link(obj_result.value(), manifest.name);
       break;
-    case manifest::Type::lib:
+    case manifest::Manifest::Type::lib:
       return archive::archive(obj_result.value(), manifest.name);
       break;
     }

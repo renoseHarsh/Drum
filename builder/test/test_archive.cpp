@@ -16,7 +16,7 @@ namespace fs = std::filesystem;
 namespace drum::builder_cmd::archive::test {
   namespace {
     constexpr manifest::Manifest manifest{"test", "0.1.0",
-                                          manifest::Type::exec};
+                                          manifest::Manifest::Type::exec};
 
     std::vector<fs::path> build_objects() {
       test_util::write_file("src/math.cpp",

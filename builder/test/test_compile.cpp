@@ -15,7 +15,7 @@ namespace fs = std::filesystem;
 namespace drum::builder_cmd::compile::test {
   namespace {
     constexpr manifest::Manifest manifest{"test", "0.1.0",
-                                          manifest::Type::exec};
+                                          manifest::Manifest::Type::exec};
 
     void setup() {
       test_util::write_file("src/main.cpp",
@@ -60,8 +60,8 @@ namespace drum::builder_cmd::compile::test {
     const test_util::TestEnvironment env{};
     setup();
 
-    const manifest::Manifest future_manifest{"test", "0.1.0",
-                                             manifest::Type::exec, future};
+    const manifest::Manifest future_manifest{
+        "test", "0.1.0", manifest::Manifest::Type::exec, future};
     const auto baseline = fs::last_write_time("build/main.o");
     compile({"src/main.cpp"}, future_manifest);
 
