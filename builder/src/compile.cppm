@@ -13,13 +13,33 @@ namespace fs = std::filesystem;
 namespace drum::builder_cmd::compile {
 
   namespace {
+    std::string_view get_standard(manifest::Manifest::Standard standard) {
+      switch (standard) {
+        using enum manifest::Manifest::Standard;
+      case cpp11:
+        return "c++11";
+      case cpp14:
+        return "c++14";
+      case cpp17:
+        return "c++17";
+      case cpp20:
+        return "c++20";
+      case cpp23:
+        return "c++23";
+      case cpp26:
+        return "c++26";
+      }
+    }
+
     std::expected<void, std::string>
-    compile_source(const fs::path &src, const fs::path &obj, bool is_lib) {
+    compile_source(const fs::path &src, const fs::path &obj,
+                   const manifest::Manifest &manifest) {
       std::vector<std::string> args{
           "clang++", "-c", src.string(), "-Isrc/", "-o", obj.string(), "-MMD"};
-      if (is_lib) {
+      if (manifest.type == manifest::Manifest::Type::lib) {
         args.push_back("-Iinclude/");
       }
+      args.push_back(std::format("-std={}", get_standard(manifest.standard)));
       return process::run_process(args);
     }
 
@@ -70,9 +90,7 @@ namespace drum::builder_cmd::compile {
         if (ec)
           return std::unexpected{"Error in creating build directory"};
 
-        if (auto result = compile_source(
-                source, obj, manifest.type == manifest::Manifest::Type::lib);
-            !result) {
+        if (auto result = compile_source(source, obj, manifest); !result) {
           return std::unexpected{std::move(result).error()};
         }
       } else

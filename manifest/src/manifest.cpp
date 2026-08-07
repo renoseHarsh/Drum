@@ -22,6 +22,35 @@ namespace drum::manifest {
       return std::unexpected{std::format(invalid_error, key)};
     }
 
+    std::expected<std::optional<std::string_view>, std::string>
+    extract_optional(const toml::table &table, std::string_view key) {
+      if (!table.contains(key))
+        return std::nullopt;
+
+      if (auto result = table[key].value<std::string_view>())
+        return result.value();
+
+      return std::unexpected{std::format(invalid_error, key)};
+    }
+
+    std::expected<Manifest::Standard, std::string>
+    parse_standard(std::string_view standard) {
+      using enum Manifest::Standard;
+      if (standard == "c++11")
+        return cpp11;
+      else if (standard == "c++14")
+        return cpp14;
+      else if (standard == "c++17")
+        return cpp17;
+      else if (standard == "c++20")
+        return cpp20;
+      else if (standard == "c++23")
+        return cpp23;
+      else if (standard == "c++26")
+        return cpp26;
+
+      return std::unexpected{"Invalid standard"};
+    }
   } // namespace
 
   std::expected<Manifest, std::string> parse() {
@@ -63,6 +92,24 @@ namespace drum::manifest {
       return std::unexpected{std::move(type_result).error()};
     }
 
+    if (auto build_table = t["build"].as_table()) {
+      if (auto standard_type =
+              extract_optional(*build_table, "standard")
+                  .and_then(
+                      [](const std::optional<std::string_view> &standard)
+                          -> std::expected<std::optional<Manifest::Standard>,
+                                           std::string> {
+                        if (!standard)
+                          return std::nullopt;
+                        return parse_standard(*standard);
+                      })) {
+        if (*standard_type) {
+          manifest.standard = **standard_type;
+        }
+      } else {
+        return std::unexpected{std::move(standard_type.error())};
+      }
+    }
 
     auto timestamp = fs::last_write_time(manifest_path, ec);
     if (ec) {

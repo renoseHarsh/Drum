@@ -118,4 +118,60 @@ namespace drum::manifest::test {
     REQUIRE(manifest.version == "0.2.0");
   }
 
+  TEST_CASE("Standard defaults to c++23 when build table absent") {
+    const test_util::TestEnvironment env{};
+
+    test_util::write_file(
+        "drum.toml",
+        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"");
+    const auto result = parse();
+    REQUIRE(result);
+    REQUIRE(result.value().standard == Manifest::Standard::cpp23);
+  }
+
+  TEST_CASE("Standard parsed from build table") {
+    const test_util::TestEnvironment env{};
+
+    const auto cases = {std::pair{"c++11", Manifest::Standard::cpp11},
+                        std::pair{"c++14", Manifest::Standard::cpp14},
+                        std::pair{"c++17", Manifest::Standard::cpp17},
+                        std::pair{"c++20", Manifest::Standard::cpp20},
+                        std::pair{"c++23", Manifest::Standard::cpp23},
+                        std::pair{"c++26", Manifest::Standard::cpp26}};
+    for (const auto &[standard, expected] : cases) {
+      test_util::write_file(
+          "drum.toml",
+          std::format(
+              "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
+              "[build]\nstandard = \"{}\"",
+              standard));
+      const auto result = parse();
+      REQUIRE(result);
+      REQUIRE(result.value().standard == expected);
+    }
+  }
+
+  TEST_CASE("Invalid standard string") {
+    const test_util::TestEnvironment env{};
+
+    test_util::write_file(
+        "drum.toml",
+        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
+        "[build]\nstandard = \"c++99\"");
+    const auto result = parse();
+    REQUIRE_FALSE(result);
+    REQUIRE(result.error() == "Invalid standard");
+  }
+
+  TEST_CASE("Non-string standard value") {
+    const test_util::TestEnvironment env{};
+
+    test_util::write_file(
+        "drum.toml",
+        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
+        "[build]\nstandard = 42");
+    const auto result = parse();
+    REQUIRE_FALSE(result);
+    REQUIRE(result.error() == "Invalid standard");
+  }
 } // namespace drum::manifest::test

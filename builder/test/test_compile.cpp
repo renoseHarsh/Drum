@@ -143,6 +143,25 @@ namespace drum::builder_cmd::compile::test {
     REQUIRE((fs::last_write_time("build/main.o") == rebuilt));
   }
 
+  TEST_CASE("Compiles with the manifest standard") {
+    const test_util::TestEnvironment env{};
+    const auto cases = {
+        std::pair{manifest::Manifest::Standard::cpp11, 201103L},
+        std::pair{manifest::Manifest::Standard::cpp14, 201402L},
+        std::pair{manifest::Manifest::Standard::cpp17, 201703L},
+        std::pair{manifest::Manifest::Standard::cpp20, 202002L},
+        std::pair{manifest::Manifest::Standard::cpp23, 202302L}};
+    for (const auto &[standard, version] : cases) {
+      const manifest::Manifest standard_manifest{
+          "test", "0.1.0", manifest::Manifest::Type::exec, {}, standard};
+      test_util::write_file(
+          "src/main.cpp",
+          std::format("static_assert(__cplusplus == {});\n", version));
+      const auto result = compile({"src/main.cpp"}, standard_manifest);
+      REQUIRE(result);
+    }
+  }
+
   TEST_CASE("Recompiles only the stale source in a multi-source build") {
     const test_util::TestEnvironment env{};
     test_util::write_file("src/main.cpp", "int main() {}\n");
