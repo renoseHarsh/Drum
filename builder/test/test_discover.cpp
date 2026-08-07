@@ -17,7 +17,8 @@ namespace drum::builder_cmd::discover::test {
 
     void require_discover(const std::vector<fs::path> &paths) {
       const auto result = discover();
-      const auto &src = result.value();
+      REQUIRE(result);
+      const auto &src = *result;
 
       auto cpp = paths | std::views::filter([](const fs::path &path) {
                    return path.extension() == ".cpp";
@@ -65,7 +66,7 @@ namespace drum::builder_cmd::discover::test {
 
     fs::create_directory("src");
     const auto result = discover();
-    REQUIRE(result.value().empty());
+    REQUIRE(result->empty());
   }
 
 } // namespace drum::builder_cmd::discover::test

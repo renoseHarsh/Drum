@@ -14,7 +14,7 @@ namespace drum::parser::test {
                         std::string_view name) {
       REQUIRE(result);
 
-      const auto *new_args = std::get_if<new_cmd::NewArgs>(&result.value());
+      const auto *new_args = std::get_if<new_cmd::NewArgs>(&*result);
 
       REQUIRE(new_args != nullptr);
       REQUIRE(new_args->pkg_type == type);

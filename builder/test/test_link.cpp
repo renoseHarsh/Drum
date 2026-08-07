@@ -34,7 +34,7 @@ namespace drum::builder_cmd::link::test {
     const auto objects = compile::compile({"src/main.cpp"}, manifest);
     REQUIRE(objects);
 
-    const auto result = link::link(objects.value(), "main");
+    const auto result = link::link(*objects, "main");
     REQUIRE(result);
     REQUIRE(fs::exists("build/main"));
   }
@@ -45,11 +45,11 @@ namespace drum::builder_cmd::link::test {
     test_util::write_file("src/main.cpp", "int main() {}");
     const auto objects = compile::compile({"src/main.cpp"}, manifest);
     REQUIRE(objects);
-    REQUIRE(link::link(objects.value(), "main"));
+    REQUIRE(link::link(*objects, "main"));
 
     const auto baseline = fs::last_write_time("build/main");
 
-    REQUIRE(link::link(objects.value(), "main"));
+    REQUIRE(link::link(*objects, "main"));
     REQUIRE((fs::last_write_time("build/main") == baseline));
   }
 
@@ -59,10 +59,10 @@ namespace drum::builder_cmd::link::test {
     test_util::write_file("src/main.cpp", "int main() {}");
     const auto objects = compile::compile({"src/main.cpp"}, manifest);
     REQUIRE(objects);
-    REQUIRE(link::link(objects.value(), "main"));
+    REQUIRE(link::link(*objects, "main"));
 
     fs::last_write_time("build/main", past);
-    REQUIRE(link::link(objects.value(), "main"));
+    REQUIRE(link::link(*objects, "main"));
     REQUIRE((fs::last_write_time("build/main") > past));
   }
 } // namespace drum::builder_cmd::link::test

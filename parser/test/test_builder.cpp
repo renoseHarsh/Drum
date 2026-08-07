@@ -15,10 +15,9 @@ namespace drum::parser::test {
 
     auto result = drum::parser::parse_arguments(2, argv);
 
-    REQUIRE(result.has_value());
+    REQUIRE(result);
 
-    const auto *build_args =
-        std::get_if<builder_cmd::BuildArgs>(&result.value());
+    const auto *build_args = std::get_if<builder_cmd::BuildArgs>(&*result);
 
     REQUIRE(build_args != nullptr);
   }

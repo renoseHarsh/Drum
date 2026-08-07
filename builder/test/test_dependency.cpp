@@ -20,7 +20,7 @@ namespace drum::builder_cmd::dependency::test {
       const auto result = get_dependencies("main.d");
       REQUIRE(result);
 
-      const auto &[got_target, got_deps] = result.value();
+      const auto &[got_target, got_deps] = *result;
       REQUIRE(got_target == target);
       REQUIRE(got_deps == deps);
     }
@@ -51,8 +51,7 @@ namespace drum::builder_cmd::dependency::test {
   TEST_CASE("Multiple dependencies on one line") {
     const test_util::TestEnvironment env{};
     check_deps("build/main.o: src/main.cpp src/util.cpp src/lib.h",
-               "build/main.o",
-               {"src/main.cpp", "src/util.cpp", "src/lib.h"});
+               "build/main.o", {"src/main.cpp", "src/util.cpp", "src/lib.h"});
   }
 
   TEST_CASE("Dependencies across multiple continuation lines") {
@@ -83,14 +82,14 @@ namespace drum::builder_cmd::dependency::test {
 
   TEST_CASE("Consecutive spaces produce no empty entries") {
     const test_util::TestEnvironment env{};
-    check_deps("build/main.o:  src/main.cpp   src/util.cpp ",
-               "build/main.o", {"src/main.cpp", "src/util.cpp"});
+    check_deps("build/main.o:  src/main.cpp   src/util.cpp ", "build/main.o",
+               {"src/main.cpp", "src/util.cpp"});
   }
 
   TEST_CASE("Leading and trailing whitespace around deps") {
     const test_util::TestEnvironment env{};
-    check_deps("build/main.o:  src/main.cpp  src/util.cpp  ",
-               "build/main.o", {"src/main.cpp", "src/util.cpp"});
+    check_deps("build/main.o:  src/main.cpp  src/util.cpp  ", "build/main.o",
+               {"src/main.cpp", "src/util.cpp"});
   }
 
   TEST_CASE("Target trims leading and trailing whitespace") {

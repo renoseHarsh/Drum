@@ -52,7 +52,7 @@ namespace drum::builder_cmd::compile::test {
     const auto result = compile({"src/main.cpp"}, manifest);
 
     REQUIRE(result);
-    REQUIRE((result.value() == std::vector<fs::path>{"build/main.o"}));
+    REQUIRE((*result == std::vector<fs::path>{"build/main.o"}));
     REQUIRE((fs::last_write_time("build/main.o") == baseline));
   }
 

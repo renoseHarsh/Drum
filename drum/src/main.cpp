@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
                      if (!manifest) {
                        return std::unexpected(std::move(manifest).error());
                      }
-                     return drum::builder_cmd::execute(arg, manifest.value());
+                     return drum::builder_cmd::execute(arg, *manifest);
                    },
                    [](const drum::run_cmd::RunArgs &arg)
                        -> std::expected<void, std::string> {
@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
                      if (!manifest) {
                        return std::unexpected(std::move(manifest).error());
                      }
-                     const auto &m = manifest.value();
+                     const auto &m = *manifest;
                      if (m.type == drum::manifest::Manifest::Type::lib) {
                        return std::unexpected{"Can't run a library package"};
                      }
@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
 
                      return drum::run_cmd::execute(arg, m);
                    }},
-        result.value());
+        *result);
 
     if (!res) {
       if (!res.error().empty())

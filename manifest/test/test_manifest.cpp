@@ -87,7 +87,7 @@ namespace drum::manifest::test {
         "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"");
     const auto result = parse();
     REQUIRE(result);
-    const auto &manifest = result.value();
+    const auto &manifest = *result;
     REQUIRE(manifest.type == Manifest::Type::exec);
     REQUIRE(manifest.name == "test_pkg");
     REQUIRE(manifest.version == "0.1.0");
@@ -101,8 +101,8 @@ namespace drum::manifest::test {
         "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"");
     const auto result = parse();
     REQUIRE(result);
-    REQUIRE((result.value().timestamp ==
-             std::filesystem::last_write_time("drum.toml")));
+    REQUIRE(
+        (result->timestamp == std::filesystem::last_write_time("drum.toml")));
   }
 
   TEST_CASE("Valid lib manifest") {
@@ -112,7 +112,7 @@ namespace drum::manifest::test {
         "drum.toml", "name = \"lib_pkg\"\nversion = \"0.2.0\"\ntype = \"lib\"");
     const auto result = parse();
     REQUIRE(result);
-    const auto &manifest = result.value();
+    const auto &manifest = *result;
     REQUIRE(manifest.type == Manifest::Type::lib);
     REQUIRE(manifest.name == "lib_pkg");
     REQUIRE(manifest.version == "0.2.0");
@@ -126,7 +126,7 @@ namespace drum::manifest::test {
         "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"");
     const auto result = parse();
     REQUIRE(result);
-    REQUIRE(result.value().standard == Manifest::Standard::cpp23);
+    REQUIRE(result->standard == Manifest::Standard::cpp23);
   }
 
   TEST_CASE("Standard parsed from build table") {
@@ -147,7 +147,7 @@ namespace drum::manifest::test {
               standard));
       const auto result = parse();
       REQUIRE(result);
-      REQUIRE(result.value().standard == expected);
+      REQUIRE(result->standard == expected);
     }
   }
 

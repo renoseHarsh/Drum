@@ -60,7 +60,7 @@ namespace drum::builder_cmd::compile {
       if (!dependencies_result)
         return true;
 
-      const auto &[target, dependencies] = dependencies_result.value();
+      const auto &[target, dependencies] = *dependencies_result;
 
       if (object != target)
         return true;

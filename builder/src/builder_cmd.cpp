@@ -42,22 +42,23 @@ namespace drum::builder_cmd {
       break;
     }
 
-    const auto src_result = discover::discover();
+    auto src_result = discover::discover();
+    if (!src_result) {
+      return std::unexpected{std::move(src_result).error()};
+    }
 
-    auto obj_result = compile::compile(src_result.value(), manifest);
+    auto obj_result = compile::compile(*src_result, manifest);
     if (!obj_result) {
       return std::unexpected{std::move(obj_result).error()};
     }
 
     switch (manifest.type) {
     case manifest::Manifest::Type::exec:
-      return link::link(obj_result.value(), manifest.name);
+      return link::link(*obj_result, manifest.name);
       break;
     case manifest::Manifest::Type::lib:
-      return archive::archive(obj_result.value(), manifest.name);
+      return archive::archive(*obj_result, manifest.name);
       break;
     }
-
-    return {};
   } // namespace drum::builder_cmd
 } // namespace drum::builder_cmd

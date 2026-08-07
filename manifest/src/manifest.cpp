@@ -84,17 +84,17 @@ namespace drum::manifest {
     Manifest manifest{};
 
     if (auto name_result = extract_string(t, "name"))
-      manifest.name = std::string{name_result.value()};
+      manifest.name = std::string{*name_result};
     else
       return std::unexpected{std::move(name_result).error()};
 
     if (auto version_result = extract_string(t, "version"))
-      manifest.version = std::string{version_result.value()};
+      manifest.version = std::string{*version_result};
     else
       return std::unexpected{std::move(version_result).error()};
 
     if (auto type_result = extract_string(t, "type").and_then(parse_type)) {
-      manifest.type = type_result.value();
+      manifest.type = *type_result;
     } else
       return std::unexpected{std::move(type_result).error()};
 

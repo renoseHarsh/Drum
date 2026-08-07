@@ -23,7 +23,7 @@ namespace drum::builder_cmd::archive::test {
                             "int add(int a, int b) { return a + b; }\n");
       const auto objects = compile::compile({"src/math.cpp"}, manifest);
       REQUIRE(objects);
-      return objects.value();
+      return *objects;
     }
   } // namespace
 

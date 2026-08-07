@@ -64,7 +64,7 @@ namespace drum::new_cmd::integration {
                            NewArgs::PackageType::executable};
 
     const auto result = execute(args);
-    REQUIRE_FALSE(result.has_value());
+    REQUIRE_FALSE(result);
     REQUIRE(result.error() ==
             std::format("Destination '{}' already exists", pkg_name));
   }
