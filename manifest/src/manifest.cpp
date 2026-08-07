@@ -7,17 +7,22 @@ import tomlplusplus;
 namespace fs = std::filesystem;
 
 namespace drum::manifest {
-  std::expected<std::string_view, std::string>
-  extract_string(const toml::table &table, std::string_view key) {
-    if (!table.contains(key))
-      return std::unexpected{std::format("Missing {}", key)};
+  namespace {
+    constexpr std::string_view invalid_error{"Invalid {}"};
 
-    auto result = table[key].value<std::string_view>();
-    if (!result)
-      return std::unexpected{std::format("Invalid {}", key)};
+    std::expected<std::string_view, std::string>
+    extract_string(const toml::table &table, std::string_view key) {
+      if (!table.contains(key))
+        return std::unexpected{std::format("Missing {}", key)};
 
-    return result.value();
-  }
+      if (auto result = table[key].value<std::string_view>()) {
+        return result.value();
+      }
+
+      return std::unexpected{std::format(invalid_error, key)};
+    }
+
+  } // namespace
 
   std::expected<Manifest, std::string> parse() {
     fs::path manifest_path{"drum.toml"};
@@ -31,38 +36,41 @@ namespace drum::manifest {
 
     const auto &t = manifest_file.table();
 
-    auto name_result = extract_string(t, "name");
-    if (!name_result) {
+    Manifest manifest{};
+
+    if (auto name_result = extract_string(t, "name"))
+      manifest.name = std::string{name_result.value()};
+    else
       return std::unexpected{std::move(name_result).error()};
-    }
 
-    auto version_result = extract_string(t, "version");
-    if (!version_result) {
+    if (auto version_result = extract_string(t, "version"))
+      manifest.version = std::string{version_result.value()};
+    else
       return std::unexpected{std::move(version_result).error()};
-    }
 
-    auto type_result = extract_string(t, "type");
-    if (!type_result) {
+    if (auto type_result = extract_string(t, "type").and_then(
+            [](std::string_view type)
+                -> std::expected<Manifest::Type, std::string> {
+              if (type == "exec")
+                return Manifest::Type::exec;
+              else if (type == "lib")
+                return Manifest::Type::lib;
+
+              return std::unexpected{"Invalid type"};
+            })) {
+      manifest.type = type_result.value();
+    } else {
       return std::unexpected{std::move(type_result).error()};
     }
+
 
     auto timestamp = fs::last_write_time(manifest_path, ec);
     if (ec) {
       return std::unexpected{
           std::format("Failed to read drum.toml timestamp: {}", ec.message())};
     }
+    manifest.timestamp = std::move(timestamp);
 
-    Manifest::Type type;
-    if (type_result.value() == "exec") {
-      type = Manifest::Type::exec;
-    } else if (type_result.value() == "lib") {
-      type = Manifest::Type::lib;
-    } else {
-      return std::unexpected{"Invalid type"};
-    }
-
-    return Manifest{std::string{name_result.value()},
-                    std::string{version_result.value()}, type,
-                    std::move(timestamp)};
+    return manifest;
   }
 } // namespace drum::manifest
