@@ -12,112 +12,126 @@ namespace drum::manifest {
 
     std::expected<std::string_view, std::string>
     extract_string(const toml::table &table, std::string_view key) {
-      if (auto node = table.get(key)) {
-        if (auto value = node->value<std::string_view>())
-          return *value;
-        return std::unexpected{std::format(invalid_error, key)};
-      }
-      return std::unexpected{std::format("Missing {}", key)};
+      const auto *node = table.get(key);
+
+      if (!node)
+        return std::unexpected{std::format("Missing {}", key)};
+
+      if (auto value = node->value<std::string_view>())
+        return *value;
+
+      return std::unexpected{std::format(invalid_error, key)};
     }
 
     std::expected<std::optional<std::string_view>, std::string>
     extract_optional(const toml::table &table, std::string_view key) {
+      const auto *node = table.get(key);
 
-      if (auto node = table.get(key)) {
-        if (auto value = node->value<std::string_view>())
-          return *value;
-        return std::unexpected{std::format(invalid_error, key)};
-      }
-      return std::nullopt;
+      if (!node)
+        return std::nullopt;
+
+      if (auto value = node->value<std::string_view>())
+        return *value;
+
+      return std::unexpected{std::format(invalid_error, key)};
     }
+
+    using namespace std::literals::string_view_literals;
 
     std::expected<Manifest::Standard, std::string>
     parse_standard(std::string_view standard) {
-      constexpr std::array table{
-          std::pair{std::string_view{"c++11"}, Manifest::Standard::cpp11},
-          std::pair{std::string_view{"c++14"}, Manifest::Standard::cpp14},
-          std::pair{std::string_view{"c++17"}, Manifest::Standard::cpp17},
-          std::pair{std::string_view{"c++20"}, Manifest::Standard::cpp20},
-          std::pair{std::string_view{"c++23"}, Manifest::Standard::cpp23},
-          std::pair{std::string_view{"c++26"}, Manifest::Standard::cpp26},
+      constexpr std::array standards{
+          std::pair{"c++11"sv, Manifest::Standard::cpp11},
+          std::pair{"c++14"sv, Manifest::Standard::cpp14},
+          std::pair{"c++17"sv, Manifest::Standard::cpp17},
+          std::pair{"c++20"sv, Manifest::Standard::cpp20},
+          std::pair{"c++23"sv, Manifest::Standard::cpp23},
+          std::pair{"c++26"sv, Manifest::Standard::cpp26},
       };
 
-      auto it = std::ranges::find_if(
-          table, [&](const auto &entry) { return entry.first == standard; });
+      const auto it = std::ranges::find_if(standards, [&](const auto &entry) {
+        return entry.first == standard;
+      });
 
-      if (it != table.end())
-        return it->second;
+      if (it == standards.end())
+        return std::unexpected{"Invalid standard"};
 
-      return std::unexpected{"Invalid standard"};
+      return it->second;
     }
 
     std::expected<Manifest::Type, std::string>
     parse_type(std::string_view type) {
-      constexpr std::array table{
-          std::pair{std::string_view{"lib"}, Manifest::Type::lib},
-          std::pair{std::string_view{"exec"}, Manifest::Type::exec}};
+      constexpr std::array types{std::pair{"lib"sv, Manifest::Type::lib},
+                                 std::pair{"exec"sv, Manifest::Type::exec}};
 
       auto it = std::ranges::find_if(
-          table, [&](const auto &entry) { return entry.first == type; });
+          types, [&](const auto &entry) { return entry.first == type; });
 
-      if (it != table.end())
-        return it->second;
+      if (it == types.end())
+        return std::unexpected{"Invalid type"};
 
-      return std::unexpected{"Invalid type"};
+      return it->second;
     }
 
   } // namespace
 
   std::expected<Manifest, std::string> parse() {
     fs::path manifest_path{"drum.toml"};
+
     std::error_code ec{};
-    if (!fs::exists(manifest_path, ec)) {
+    if (!fs::exists(manifest_path, ec))
       return std::unexpected{"Missing drum.toml"};
-    }
 
     const auto manifest_file = toml::parse_file(manifest_path.string());
     if (!manifest_file)
       return std::unexpected{std::string{manifest_file.error().description()}};
 
     const auto &t = manifest_file.table();
-
     Manifest manifest{};
 
-    if (auto name_result = extract_string(t, "name"))
-      manifest.name = std::string{*name_result};
-    else
-      return std::unexpected{std::move(name_result).error()};
+    {
+      auto result = extract_string(t, "name");
+      if (!result)
+        return std::unexpected{std::move(result).error()};
 
-    if (auto version_result = extract_string(t, "version"))
-      manifest.version = std::string{*version_result};
-    else
-      return std::unexpected{std::move(version_result).error()};
+      manifest.name = std::string{*result};
+    }
 
-    if (auto type_result = extract_string(t, "type").and_then(parse_type)) {
-      manifest.type = *type_result;
-    } else
-      return std::unexpected{std::move(type_result).error()};
+    {
+      auto result = extract_string(t, "version");
+      if (!result)
+        return std::unexpected{std::move(result).error()};
+
+      manifest.version = std::string{*result};
+    }
+
+    {
+      auto result = extract_string(t, "type").and_then(parse_type);
+      if (!result)
+        return std::unexpected{std::move(result).error()};
+
+      manifest.type = *result;
+    }
 
     if (auto build_table = t["build"].as_table()) {
-      if (auto standard = extract_optional(*build_table, "standard")) {
-        if (standard->has_value()) {
-          auto parsed = parse_standard(**standard);
-          if (!parsed)
-            return std::unexpected{std::move(parsed).error()};
+      auto result = extract_optional(*build_table, "standard");
+      if (!result)
+        return std::unexpected{std::move(result).error()};
 
-          manifest.standard = *parsed;
-        }
-      } else {
-        return std::unexpected{std::move(standard.error())};
+      if (*result) {
+        auto standard = parse_standard(**result);
+        if (!standard)
+          return std::unexpected{std::move(standard.error())};
+
+        manifest.standard = *standard;
       }
     }
 
-    auto timestamp = fs::last_write_time(manifest_path, ec);
+    manifest.timestamp = fs::last_write_time(manifest_path, ec);
     if (ec) {
       return std::unexpected{
           std::format("Failed to read drum.toml timestamp: {}", ec.message())};
     }
-    manifest.timestamp = std::move(timestamp);
 
     return manifest;
   }
