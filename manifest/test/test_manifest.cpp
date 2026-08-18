@@ -126,18 +126,16 @@ namespace drum::manifest::test {
         "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"");
     const auto result = parse();
     REQUIRE(result);
-    REQUIRE(result->standard == Manifest::Standard::cpp23);
+    REQUIRE(result->build.standard == Manifest::Build::Standard::cpp23);
   }
 
   TEST_CASE("Standard parsed from build table") {
     const test_util::TestEnvironment env{};
 
-    const auto cases = {std::pair{"c++11", Manifest::Standard::cpp11},
-                        std::pair{"c++14", Manifest::Standard::cpp14},
-                        std::pair{"c++17", Manifest::Standard::cpp17},
-                        std::pair{"c++20", Manifest::Standard::cpp20},
-                        std::pair{"c++23", Manifest::Standard::cpp23},
-                        std::pair{"c++26", Manifest::Standard::cpp26}};
+    using enum manifest::Manifest::Build::Standard;
+    const auto cases = {std::pair{"c++11", cpp11}, std::pair{"c++14", cpp14},
+                        std::pair{"c++17", cpp17}, std::pair{"c++20", cpp20},
+                        std::pair{"c++23", cpp23}, std::pair{"c++26", cpp26}};
     for (const auto &[standard, expected] : cases) {
       test_util::write_file(
           "drum.toml",
@@ -147,7 +145,7 @@ namespace drum::manifest::test {
               standard));
       const auto result = parse();
       REQUIRE(result);
-      REQUIRE(result->standard == expected);
+      REQUIRE(result->build.standard == expected);
     }
   }
 

@@ -61,7 +61,7 @@ namespace drum::builder_cmd::compile::test {
     setup();
 
     const manifest::Manifest future_manifest{
-        "test", "0.1.0", manifest::Manifest::Type::exec, future};
+        "test", "0.1.0", manifest::Manifest::Type::exec, {}, future};
     const auto baseline = fs::last_write_time("build/main.o");
     compile({"src/main.cpp"}, future_manifest);
 
@@ -145,15 +145,15 @@ namespace drum::builder_cmd::compile::test {
 
   TEST_CASE("Compiles with the manifest standard") {
     const test_util::TestEnvironment env{};
-    const auto cases = {
-        std::pair{manifest::Manifest::Standard::cpp11, 201103L},
-        std::pair{manifest::Manifest::Standard::cpp14, 201402L},
-        std::pair{manifest::Manifest::Standard::cpp17, 201703L},
-        std::pair{manifest::Manifest::Standard::cpp20, 202002L},
-        std::pair{manifest::Manifest::Standard::cpp23, 202302L}};
+
+    using enum manifest::Manifest::Build::Standard;
+    constexpr std::array cases{
+        std::pair{cpp11, 201103L}, std::pair{cpp14, 201402L},
+        std::pair{cpp17, 201703L}, std::pair{cpp20, 202002L},
+        std::pair{cpp23, 202302L}};
     for (const auto &[standard, version] : cases) {
       const manifest::Manifest standard_manifest{
-          "test", "0.1.0", manifest::Manifest::Type::exec, {}, standard};
+          "test", "0.1.0", manifest::Manifest::Type::exec, {standard}};
       test_util::write_file(
           "src/main.cpp",
           std::format("static_assert(__cplusplus == {});\n", version));

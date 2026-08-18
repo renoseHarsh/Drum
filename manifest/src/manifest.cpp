@@ -38,15 +38,13 @@ namespace drum::manifest {
 
     using namespace std::literals::string_view_literals;
 
-    std::expected<Manifest::Standard, std::string>
+    std::expected<Manifest::Build::Standard, std::string>
     parse_standard(std::string_view standard) {
+      using enum manifest::Manifest::Build::Standard;
       constexpr std::array standards{
-          std::pair{"c++11"sv, Manifest::Standard::cpp11},
-          std::pair{"c++14"sv, Manifest::Standard::cpp14},
-          std::pair{"c++17"sv, Manifest::Standard::cpp17},
-          std::pair{"c++20"sv, Manifest::Standard::cpp20},
-          std::pair{"c++23"sv, Manifest::Standard::cpp23},
-          std::pair{"c++26"sv, Manifest::Standard::cpp26},
+          std::pair{"c++11"sv, cpp11}, std::pair{"c++14"sv, cpp14},
+          std::pair{"c++17"sv, cpp17}, std::pair{"c++20"sv, cpp20},
+          std::pair{"c++23"sv, cpp23}, std::pair{"c++26"sv, cpp26},
       };
 
       const auto it = std::ranges::find_if(standards, [&](const auto &entry) {
@@ -71,6 +69,27 @@ namespace drum::manifest {
         return std::unexpected{"Invalid type"};
 
       return it->second;
+    }
+
+    std::expected<Manifest::Build, std::string>
+    parse_build(const toml::table &table) {
+      Manifest::Build build{};
+
+      {
+        auto result = extract_optional(table, "standard");
+        if (!result)
+          return std::unexpected{std::move(result).error()};
+
+        if (*result) {
+          auto standard = parse_standard(**result);
+          if (!standard)
+            return std::unexpected{std::move(standard).error()};
+
+          build.standard = *standard;
+        }
+      }
+
+      return build;
     }
 
   } // namespace
@@ -114,16 +133,12 @@ namespace drum::manifest {
     }
 
     if (auto build_table = t["build"].as_table()) {
-      auto result = extract_optional(*build_table, "standard");
-      if (!result)
-        return std::unexpected{std::move(result).error()};
+      {
+        auto result = parse_build(*build_table);
+        if (!result)
+          return std::unexpected{std::move(result).error()};
 
-      if (*result) {
-        auto standard = parse_standard(**result);
-        if (!standard)
-          return std::unexpected{std::move(standard.error())};
-
-        manifest.standard = *standard;
+        manifest.build = std::move(*result);
       }
     }
 

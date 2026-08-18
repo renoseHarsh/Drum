@@ -13,9 +13,10 @@ namespace fs = std::filesystem;
 namespace drum::builder_cmd::compile {
 
   namespace {
-    std::string_view get_standard(manifest::Manifest::Standard standard) {
+    std::string_view
+    get_standard(manifest::Manifest::Build::Standard standard) {
       switch (standard) {
-        using enum manifest::Manifest::Standard;
+        using enum manifest::Manifest::Build::Standard;
       case cpp11:
         return "c++11";
       case cpp14:
@@ -39,7 +40,8 @@ namespace drum::builder_cmd::compile {
       if (manifest.type == manifest::Manifest::Type::lib) {
         args.push_back("-Iinclude/");
       }
-      args.push_back(std::format("-std={}", get_standard(manifest.standard)));
+      args.push_back(
+          std::format("-std={}", get_standard(manifest.build.standard)));
       return process::run_process(args);
     }
 
