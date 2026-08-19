@@ -7,77 +7,65 @@ import test_util;
 
 namespace drum::manifest::test {
   namespace {
-    void require_error(std::string_view expected) {
+    void require_parse_error(std::string_view toml, std::string_view expected) {
+      test_util::write_file("drum.toml", toml);
       const auto result = parse();
       REQUIRE_FALSE(result);
       REQUIRE(result.error() == expected);
     }
   } // namespace
 
-  TEST_CASE("Missing drum.toml") { require_error("Missing drum.toml"); }
+  TEST_CASE("Missing drum.toml") {
+    const test_util::TestEnvironment env{};
+    const auto result = parse();
+    REQUIRE_FALSE(result);
+    REQUIRE(result.error() == "Missing drum.toml");
+  }
 
   TEST_CASE("Invalid TOML syntax") {
     const test_util::TestEnvironment env{};
-
     test_util::write_file("drum.toml", "[[unclosed");
-    const auto result = parse();
-    REQUIRE_FALSE(result);
+    REQUIRE_FALSE(parse());
   }
 
-  TEST_CASE("Missing name in manifest") {
+  TEST_CASE("Invalid name") {
     const test_util::TestEnvironment env{};
-
-    test_util::write_file("drum.toml", "version = \"0.1.0\"\ntype = \"exec\"");
-    require_error("Missing name");
+    require_parse_error("version = \"0.1.0\"\ntype = \"exec\"", "Missing name");
+    require_parse_error("name = 42\nversion = \"0.1.0\"\ntype = \"exec\"",
+                        "Invalid name");
   }
 
-  TEST_CASE("Missing version in manifest") {
+  TEST_CASE("Invalid version") {
     const test_util::TestEnvironment env{};
-
-    test_util::write_file("drum.toml", "name = \"test_pkg\"\ntype = \"exec\"");
-    require_error("Missing version");
+    require_parse_error("name = \"test_pkg\"\ntype = \"exec\"",
+                        "Missing version");
+    require_parse_error("name = \"test_pkg\"\nversion = 42\ntype = \"exec\"",
+                        "Invalid version");
   }
 
-  TEST_CASE("Missing type in manifest") {
+  TEST_CASE("Invalid type") {
     const test_util::TestEnvironment env{};
-
-    test_util::write_file("drum.toml",
-                          "name = \"test_pkg\"\nversion = \"0.1.0\"");
-    require_error("Missing type");
+    require_parse_error("name = \"test_pkg\"\nversion = \"0.1.0\"",
+                        "Missing type");
+    require_parse_error("name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = 42",
+                        "Invalid type");
+    require_parse_error(
+        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"foo\"",
+        "Invalid type");
   }
 
-  TEST_CASE("Non-string name value") {
+  TEST_CASE("Invalid standard") {
     const test_util::TestEnvironment env{};
-
-    test_util::write_file("drum.toml",
-                          "name = 42\nversion = \"0.1.0\"\ntype = \"exec\"");
-    require_error("Invalid name");
+    require_parse_error(
+        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
+        "[build]\nstandard = \"c++99\"",
+        "Invalid standard");
+    require_parse_error(
+        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
+        "[build]\nstandard = 42",
+        "Invalid standard");
   }
 
-  TEST_CASE("Non-string version value") {
-    const test_util::TestEnvironment env{};
-
-    test_util::write_file("drum.toml",
-                          "name = \"test_pkg\"\nversion = 42\ntype = \"exec\"");
-    require_error("Invalid version");
-  }
-
-  TEST_CASE("Non-string type value") {
-    const test_util::TestEnvironment env{};
-
-    test_util::write_file(
-        "drum.toml", "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = 42");
-    require_error("Invalid type");
-  }
-
-  TEST_CASE("Unrecognized type value") {
-    const test_util::TestEnvironment env{};
-
-    test_util::write_file(
-        "drum.toml",
-        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"foo\"");
-    require_error("Invalid type");
-  }
 
   TEST_CASE("Valid exec manifest") {
     const test_util::TestEnvironment env{};
@@ -87,22 +75,12 @@ namespace drum::manifest::test {
         "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"");
     const auto result = parse();
     REQUIRE(result);
-    const auto &manifest = *result;
-    REQUIRE(manifest.type == Manifest::Type::exec);
-    REQUIRE(manifest.name == "test_pkg");
-    REQUIRE(manifest.version == "0.1.0");
-  }
-
-  TEST_CASE("Valid manifest records drum.toml timestamp") {
-    const test_util::TestEnvironment env{};
-
-    test_util::write_file(
-        "drum.toml",
-        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"");
-    const auto result = parse();
-    REQUIRE(result);
+    REQUIRE(result->name == "test_pkg");
+    REQUIRE(result->version == "0.1.0");
+    REQUIRE(result->type == Manifest::Type::exec);
     REQUIRE(
         (result->timestamp == std::filesystem::last_write_time("drum.toml")));
+    REQUIRE(result->build.standard == Manifest::Build::Standard::cpp23);
   }
 
   TEST_CASE("Valid lib manifest") {
@@ -112,21 +90,9 @@ namespace drum::manifest::test {
         "drum.toml", "name = \"lib_pkg\"\nversion = \"0.2.0\"\ntype = \"lib\"");
     const auto result = parse();
     REQUIRE(result);
-    const auto &manifest = *result;
-    REQUIRE(manifest.type == Manifest::Type::lib);
-    REQUIRE(manifest.name == "lib_pkg");
-    REQUIRE(manifest.version == "0.2.0");
-  }
-
-  TEST_CASE("Standard defaults to c++23 when build table absent") {
-    const test_util::TestEnvironment env{};
-
-    test_util::write_file(
-        "drum.toml",
-        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"");
-    const auto result = parse();
-    REQUIRE(result);
-    REQUIRE(result->build.standard == Manifest::Build::Standard::cpp23);
+    REQUIRE(result->name == "lib_pkg");
+    REQUIRE(result->version == "0.2.0");
+    REQUIRE(result->type == Manifest::Type::lib);
   }
 
   TEST_CASE("Standard parsed from build table") {
@@ -149,27 +115,4 @@ namespace drum::manifest::test {
     }
   }
 
-  TEST_CASE("Invalid standard string") {
-    const test_util::TestEnvironment env{};
-
-    test_util::write_file(
-        "drum.toml",
-        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
-        "[build]\nstandard = \"c++99\"");
-    const auto result = parse();
-    REQUIRE_FALSE(result);
-    REQUIRE(result.error() == "Invalid standard");
-  }
-
-  TEST_CASE("Non-string standard value") {
-    const test_util::TestEnvironment env{};
-
-    test_util::write_file(
-        "drum.toml",
-        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
-        "[build]\nstandard = 42");
-    const auto result = parse();
-    REQUIRE_FALSE(result);
-    REQUIRE(result.error() == "Invalid standard");
-  }
 } // namespace drum::manifest::test
