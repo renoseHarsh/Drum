@@ -18,7 +18,10 @@ export namespace drum::manifest {
         cpp26,
       };
 
+      enum class Warnings { none, default_, all, pedantic };
+
       Standard standard{Standard::cpp23};
+      Warnings warnings{Warnings::default_};
     };
 
     std::string name{};

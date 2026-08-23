@@ -32,16 +32,45 @@ namespace drum::builder_cmd::compile {
       }
     }
 
+    std::span<const std::string_view>
+    get_warnings(manifest::Manifest::Build::Warnings warnings) {
+      using enum manifest::Manifest::Build::Warnings;
+
+      static constexpr std::array<std::string_view, 1> warnings_none{"-w"};
+      static constexpr std::array<std::string_view, 2> warnings_all{"-Wall",
+                                                                    "-Wextra"};
+      static constexpr std::array<std::string_view, 2> warnings_pedantic{
+          "-Wall", "-Wpedantic"};
+
+      switch (warnings) {
+      case none:
+        return warnings_none;
+      case default_:
+        return {};
+      case all:
+        return warnings_all;
+      case pedantic:
+        return warnings_pedantic;
+      }
+    }
+
     std::expected<void, std::string>
     compile_source(const fs::path &src, const fs::path &obj,
                    const manifest::Manifest &manifest) {
       std::vector<std::string> args{
           "clang++", "-c", src.string(), "-Isrc/", "-o", obj.string(), "-MMD"};
+
       if (manifest.type == manifest::Manifest::Type::lib) {
         args.push_back("-Iinclude/");
       }
+
       args.push_back(
           std::format("-std={}", get_standard(manifest.build.standard)));
+
+      args.append_range(get_warnings(manifest.build.warnings) |
+                        std::views::transform(
+                            [](auto warning) { return std::string{warning}; }));
+
       return process::run_process(args);
     }
 
@@ -92,9 +121,9 @@ namespace drum::builder_cmd::compile {
         if (ec)
           return std::unexpected{"Error in creating build directory"};
 
-        if (auto result = compile_source(source, obj, manifest); !result) {
+        if (auto result = compile_source(source, obj, manifest); !result)
           return std::unexpected{std::move(result).error()};
-        }
+
       } else
         log::cache_hit(obj);
 

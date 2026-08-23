@@ -71,6 +71,25 @@ namespace drum::manifest {
       return it->second;
     }
 
+    std::expected<Manifest::Build::Warnings, std::string>
+    parse_warnings(std::string_view warnings) {
+      using enum manifest::Manifest::Build::Warnings;
+      constexpr std::array levels{
+          std::pair{"none"sv, none},
+          std::pair{"default"sv, default_},
+          std::pair{"all"sv, all},
+          std::pair{"pedantic"sv, pedantic},
+      };
+
+      const auto it = std::ranges::find_if(
+          levels, [&](const auto &entry) { return entry.first == warnings; });
+
+      if (it == levels.end())
+        return std::unexpected{"Invalid warnings level"};
+
+      return it->second;
+    }
+
     std::expected<Manifest::Build, std::string>
     parse_build(const toml::table &table) {
       Manifest::Build build{};
@@ -86,6 +105,20 @@ namespace drum::manifest {
             return std::unexpected{std::move(standard).error()};
 
           build.standard = *standard;
+        }
+      }
+
+      {
+        auto result = extract_optional(table, "warnings");
+        if (!result)
+          return std::unexpected{std::move(result).error()};
+
+        if (*result) {
+          auto warnings = parse_warnings(**result);
+          if (!warnings)
+            return std::unexpected{std::move(warnings).error()};
+
+          build.warnings = *warnings;
         }
       }
 

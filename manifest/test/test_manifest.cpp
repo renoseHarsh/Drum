@@ -66,6 +66,17 @@ namespace drum::manifest::test {
         "Invalid standard");
   }
 
+  TEST_CASE("Invalid warnings") {
+    const test_util::TestEnvironment env{};
+    require_parse_error(
+        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
+        "[build]\nwarnings = \"foo\"",
+        "Invalid warnings level");
+    require_parse_error(
+        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
+        "[build]\nwarnings = 42",
+        "Invalid warnings");
+  }
 
   TEST_CASE("Valid exec manifest") {
     const test_util::TestEnvironment env{};
@@ -81,6 +92,7 @@ namespace drum::manifest::test {
     REQUIRE(
         (result->timestamp == std::filesystem::last_write_time("drum.toml")));
     REQUIRE(result->build.standard == Manifest::Build::Standard::cpp23);
+    REQUIRE(result->build.warnings == Manifest::Build::Warnings::default_);
   }
 
   TEST_CASE("Valid lib manifest") {
@@ -115,4 +127,22 @@ namespace drum::manifest::test {
     }
   }
 
+  TEST_CASE("Warnings parsed from build table") {
+    const test_util::TestEnvironment env{};
+
+    using enum manifest::Manifest::Build::Warnings;
+    const auto cases = {std::pair{"none", none}, std::pair{"default", default_},
+                        std::pair{"all", all}, std::pair{"pedantic", pedantic}};
+    for (const auto &[warnings, expected] : cases) {
+      test_util::write_file(
+          "drum.toml",
+          std::format(
+              "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
+              "[build]\nwarnings = \"{}\"",
+              warnings));
+      const auto result = parse();
+      REQUIRE(result);
+      REQUIRE(result->build.warnings == expected);
+    }
+  }
 } // namespace drum::manifest::test
