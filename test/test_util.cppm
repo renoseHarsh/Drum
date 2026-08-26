@@ -25,8 +25,8 @@ export namespace drum::test_util {
     TestEnvironment &operator=(TestEnvironment &&) = delete;
 
   private:
-    fs::path temp_dir{};
     fs::path old_cwd{};
+    fs::path temp_dir{};
   };
 
   void write_file(const fs::path &path, std::string_view content) {
