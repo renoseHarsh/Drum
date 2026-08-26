@@ -52,7 +52,7 @@ namespace drum::manifest {
       });
 
       if (it == standards.end())
-        return std::unexpected{"Invalid standard"};
+        return std::unexpected{std::format(invalid_error, "standard")};
 
       return it->second;
     }
@@ -66,7 +66,7 @@ namespace drum::manifest {
           types, [&](const auto &entry) { return entry.first == type; });
 
       if (it == types.end())
-        return std::unexpected{"Invalid type"};
+        return std::unexpected{std::format(invalid_error, "type")};
 
       return it->second;
     }
@@ -85,7 +85,7 @@ namespace drum::manifest {
           levels, [&](const auto &entry) { return entry.first == warnings; });
 
       if (it == levels.end())
-        return std::unexpected{"Invalid warnings level"};
+        return std::unexpected{std::format(invalid_error, "warnings level")};
 
       return it->second;
     }
@@ -95,31 +95,43 @@ namespace drum::manifest {
       Manifest::Build build{};
 
       {
-        auto result = extract_optional(table, "standard");
+        auto result =
+            extract_optional(table, "standard")
+                .and_then(
+                    [](auto value) -> std::expected<
+                                       std::optional<Manifest::Build::Standard>,
+                                       std::string> {
+                      if (!value)
+                        return std::nullopt;
+
+                      return parse_standard(*value);
+                    });
+
         if (!result)
           return std::unexpected{std::move(result).error()};
 
-        if (*result) {
-          auto standard = parse_standard(**result);
-          if (!standard)
-            return std::unexpected{std::move(standard).error()};
-
-          build.standard = *standard;
-        }
+        if (*result)
+          build.standard = **result;
       }
 
       {
-        auto result = extract_optional(table, "warnings");
+        auto result =
+            extract_optional(table, "warnings")
+                .and_then(
+                    [](auto value) -> std::expected<
+                                       std::optional<Manifest::Build::Warnings>,
+                                       std::string> {
+                      if (!value)
+                        return std::nullopt;
+
+                      return parse_warnings(*value);
+                    });
+
         if (!result)
           return std::unexpected{std::move(result).error()};
 
-        if (*result) {
-          auto warnings = parse_warnings(**result);
-          if (!warnings)
-            return std::unexpected{std::move(warnings).error()};
-
-          build.warnings = *warnings;
-        }
+        if (*result)
+          build.warnings = **result;
       }
 
       return build;
