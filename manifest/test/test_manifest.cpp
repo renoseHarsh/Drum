@@ -7,6 +7,12 @@ import test_util;
 
 namespace drum::manifest::test {
   namespace {
+    constexpr std::string_view base_manifest{
+        R"(name = "test_pkg"
+version = "0.1.0"
+type = "exec"
+)"};
+
     void require_parse_error(std::string_view toml, std::string_view expected) {
       test_util::write_file("drum.toml", toml);
       const auto result = parse();
@@ -57,48 +63,38 @@ namespace drum::manifest::test {
   TEST_CASE("Invalid standard") {
     const test_util::TestEnvironment env{};
     require_parse_error(
-        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
-        "[build]\nstandard = \"c++99\"",
+        std::format("{}[build]\nstandard = \"c++99\"", base_manifest),
         "Invalid standard");
-    require_parse_error(
-        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
-        "[build]\nstandard = 42",
-        "Invalid standard");
+    require_parse_error(std::format("{}[build]\nstandard = 42", base_manifest),
+                        "Invalid standard");
   }
 
   TEST_CASE("Invalid warnings") {
     const test_util::TestEnvironment env{};
     require_parse_error(
-        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
-        "[build]\nwarnings = \"foo\"",
+        std::format("{}[build]\nwarnings = \"foo\"", base_manifest),
         "Invalid warnings level");
-    require_parse_error(
-        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
-        "[build]\nwarnings = 42",
-        "Invalid warnings");
+    require_parse_error(std::format("{}[build]\nwarnings = 42", base_manifest),
+                        "Invalid warnings");
   }
 
   TEST_CASE("Invalid warnings_as_errors") {
     const test_util::TestEnvironment env{};
     require_parse_error(
-        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
-        "[build]\nwarnings_as_errors = \"foo\"",
+        std::format("{}[build]\nwarnings_as_errors = \"foo\"", base_manifest),
         "Invalid warnings_as_errors");
     require_parse_error(
-        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
-        "[build]\nwarnings_as_errors = 42",
+        std::format("{}[build]\nwarnings_as_errors = 42", base_manifest),
         "Invalid warnings_as_errors");
   }
 
   TEST_CASE("Invalid extra_flags") {
     const test_util::TestEnvironment env{};
     require_parse_error(
-        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
-        "[build]\nextra_flags = \"-O2\"",
+        std::format("{}[build]\nextra_flags = \"-O2\"", base_manifest),
         "Invalid extra_flags");
     require_parse_error(
-        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
-        "[build]\nextra_flags = [\"-O2\", 42]",
+        std::format("{}[build]\nextra_flags = [\"-O2\", 42]", base_manifest),
         "Invalid extra_flags");
   }
 
@@ -145,10 +141,7 @@ namespace drum::manifest::test {
     for (const auto &[standard, expected] : cases) {
       test_util::write_file(
           "drum.toml",
-          std::format(
-              "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
-              "[build]\nstandard = \"{}\"",
-              standard));
+          std::format("{}[build]\nstandard = \"{}\"", base_manifest, standard));
 
       const auto result = parse();
       REQUIRE(result);
@@ -165,10 +158,7 @@ namespace drum::manifest::test {
     for (const auto &[warnings, expected] : cases) {
       test_util::write_file(
           "drum.toml",
-          std::format(
-              "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
-              "[build]\nwarnings = \"{}\"",
-              warnings));
+          std::format("{}[build]\nwarnings = \"{}\"", base_manifest, warnings));
 
       const auto result = parse();
       REQUIRE(result);
@@ -181,12 +171,9 @@ namespace drum::manifest::test {
 
     const auto cases = {std::pair{true, true}, std::pair{false, false}};
     for (const auto &[value, expected] : cases) {
-      test_util::write_file(
-          "drum.toml",
-          std::format(
-              "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
-              "[build]\nwarnings_as_errors = {}",
-              value));
+      test_util::write_file("drum.toml",
+                            std::format("{}[build]\nwarnings_as_errors = {}",
+                                        base_manifest, value));
 
       const auto result = parse();
       REQUIRE(result);
@@ -207,10 +194,7 @@ namespace drum::manifest::test {
 
     test_util::write_file(
         "drum.toml",
-        std::format(
-            "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
-            "[build]\nextra_flags = [{}]",
-            flags));
+        std::format("{}[build]\nextra_flags = [{}]", base_manifest, flags));
 
     const auto result = parse();
     REQUIRE(result);
