@@ -40,6 +40,35 @@ namespace drum::manifest {
       return node->value<T>().value();
     }
 
+    template <typename T>
+    std::expected<std::optional<std::vector<T>>, std::string>
+    extract_optional_array(const toml::table &table, std::string_view key) {
+      const auto *node = table.get(key);
+
+      if (!node)
+        return std::nullopt;
+
+      if (!node->is_array())
+        return std::unexpected{std::format(invalid_error, key)};
+
+      const auto *array = node->as_array();
+
+      const bool valid = std::ranges::all_of(
+          *array, [](const auto &node) { return node.template is<T>(); });
+
+      if (!valid)
+        return std::unexpected{std::format(invalid_error, key)};
+
+      std::vector<T> result;
+      result.reserve(array->size());
+
+      std::ranges::transform(
+          *array, std::back_inserter(result),
+          [](const auto &node) { return node.template value<T>().value(); });
+
+      return result;
+    }
+
     using namespace std::literals::string_view_literals;
 
     std::expected<Manifest::Build::Standard, std::string>
@@ -155,6 +184,26 @@ namespace drum::manifest {
 
         if (*result)
           build.warnings_as_errors = **result;
+      }
+
+      {
+        auto result =
+            extract_optional_array<std::string>(table, "extra_flags")
+                .and_then(
+                    [](auto value) -> std::expected<
+                                       std::optional<std::vector<std::string>>,
+                                       std::string> {
+                      if (!value)
+                        return std::nullopt;
+
+                      return *value;
+                    });
+
+        if (!result)
+          return std::unexpected{std::move(result).error()};
+
+        if (*result)
+          build.extra_flags = std::move(**result);
       }
 
       return build;

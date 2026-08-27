@@ -74,6 +74,8 @@ namespace drum::builder_cmd::compile {
       if (manifest.build.warnings_as_errors)
         args.push_back("-Werror");
 
+      args.append_range(manifest.build.extra_flags);
+
       return process::run_process(args);
     }
 

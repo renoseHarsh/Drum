@@ -90,6 +90,18 @@ namespace drum::manifest::test {
         "Invalid warnings_as_errors");
   }
 
+  TEST_CASE("Invalid extra_flags") {
+    const test_util::TestEnvironment env{};
+    require_parse_error(
+        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
+        "[build]\nextra_flags = \"-O2\"",
+        "Invalid extra_flags");
+    require_parse_error(
+        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
+        "[build]\nextra_flags = [\"-O2\", 42]",
+        "Invalid extra_flags");
+  }
+
   TEST_CASE("Valid exec manifest") {
     const test_util::TestEnvironment env{};
 
@@ -106,6 +118,7 @@ namespace drum::manifest::test {
     REQUIRE(result->build.standard == Manifest::Build::Standard::cpp23);
     REQUIRE(result->build.warnings == Manifest::Build::Warnings::default_);
     REQUIRE_FALSE(result->build.warnings_as_errors);
+    REQUIRE(result->build.extra_flags.empty());
   }
 
   TEST_CASE("Valid lib manifest") {
@@ -119,6 +132,7 @@ namespace drum::manifest::test {
     REQUIRE(result->version == "0.2.0");
     REQUIRE(result->type == Manifest::Type::lib);
     REQUIRE_FALSE(result->build.warnings_as_errors);
+    REQUIRE(result->build.extra_flags.empty());
   }
 
   TEST_CASE("Standard parsed from build table") {
@@ -135,6 +149,7 @@ namespace drum::manifest::test {
               "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
               "[build]\nstandard = \"{}\"",
               standard));
+
       const auto result = parse();
       REQUIRE(result);
       REQUIRE(result->build.standard == expected);
@@ -154,6 +169,7 @@ namespace drum::manifest::test {
               "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
               "[build]\nwarnings = \"{}\"",
               warnings));
+
       const auto result = parse();
       REQUIRE(result);
       REQUIRE(result->build.warnings == expected);
@@ -171,9 +187,33 @@ namespace drum::manifest::test {
               "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
               "[build]\nwarnings_as_errors = {}",
               value));
+
       const auto result = parse();
       REQUIRE(result);
       REQUIRE(result->build.warnings_as_errors == expected);
     }
+  }
+
+  TEST_CASE("Extra_flags parsed from build table") {
+    const test_util::TestEnvironment env{};
+
+    std::vector<std::string> extra_flags{"-fno-rtti", "-fvisibility=hidden"};
+    std::string flags = extra_flags |
+                        std::views::transform([](std::string_view flag) {
+                          return std::format("\"{}\"", flag);
+                        }) |
+                        std::views::join_with(std::string_view{", "}) |
+                        std::ranges::to<std::string>();
+
+    test_util::write_file(
+        "drum.toml",
+        std::format(
+            "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
+            "[build]\nextra_flags = [{}]",
+            flags));
+
+    const auto result = parse();
+    REQUIRE(result);
+    REQUIRE(result->build.extra_flags == extra_flags);
   }
 } // namespace drum::manifest::test
