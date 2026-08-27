@@ -22,6 +22,7 @@ export namespace drum::manifest {
 
       Standard standard{Standard::cpp23};
       Warnings warnings{Warnings::default_};
+      bool warnings_as_errors{false};
     };
 
     std::string name{};

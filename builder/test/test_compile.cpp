@@ -27,6 +27,18 @@ namespace drum::builder_cmd::compile::test {
     using clock = fs::file_time_type::clock;
     const fs::file_time_type future = clock::now() + std::chrono::seconds{10};
     const fs::file_time_type past = clock::now() + std::chrono::seconds{-10};
+
+    using Warnings = manifest::Manifest::Build::Warnings;
+
+    auto compile_with_warnings(std::string_view src, Warnings level,
+                               bool errors) {
+      test_util::write_file("src/main.cpp", src);
+      const manifest::Manifest m{
+          "test", "0.1.0", manifest::Manifest::Type::exec,
+          manifest::Manifest::Build{.warnings = level,
+                                    .warnings_as_errors = errors}};
+      return compile({"src/main.cpp"}, m);
+    }
   } // namespace
 
   TEST_CASE("Compile failure propagates from the compiler") {
@@ -180,4 +192,44 @@ namespace drum::builder_cmd::compile::test {
     REQUIRE((fs::last_write_time("build/main.o") == main_baseline));
     REQUIRE((fs::last_write_time("build/utils.o") > util_baseline));
   }
+
+  TEST_CASE("Suppresses warnings at the none level") {
+    REQUIRE(compile_with_warnings("int fn(){}", Warnings::none, false));
+    REQUIRE(compile_with_warnings("int fn(){}", Warnings::none, true));
+  }
+
+  TEST_CASE("Compiles and promotes warnings at the default_ level") {
+    REQUIRE(compile_with_warnings("int fn(){}", Warnings::default_, false));
+    REQUIRE_FALSE(
+        compile_with_warnings("int fn(){}", Warnings::default_, true));
+    REQUIRE(
+        compile_with_warnings("void fn(int x) {}", Warnings::default_, true));
+  }
+
+  TEST_CASE("Compiles and promotes warnings at the all level") {
+    // -Wunused-parameter is enabled by -Wall/-Wextra.
+    REQUIRE(compile_with_warnings("void fn(int x) {}", Warnings::all, false));
+    REQUIRE_FALSE(
+        compile_with_warnings("void fn(int x) {}", Warnings::all, true));
+
+    // GNU statement expressions require -Wpedantic.
+    REQUIRE(compile_with_warnings(
+        "int main() {int x = ({int y = 42;y;});return x;}", Warnings::all,
+        true));
+  }
+
+  TEST_CASE("Compiles and promotes warnings at the pedantic level") {
+    // -Wpedantic catches the GNU extension.
+    REQUIRE(compile_with_warnings(
+        "int main() {int x = ({int y = 42;y;});return x;}", Warnings::pedantic,
+        false));
+    REQUIRE_FALSE(compile_with_warnings(
+        "int main() {int x = ({int y = 42;y;});return x;}", Warnings::pedantic,
+        true));
+
+    // Valid, warning-free C++.
+    REQUIRE(compile_with_warnings("int main(){int x = 42;return x;}",
+                                  Warnings::pedantic, true));
+  }
+
 } // namespace drum::builder_cmd::compile::test

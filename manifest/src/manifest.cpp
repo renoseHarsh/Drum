@@ -23,17 +23,21 @@ namespace drum::manifest {
       return std::unexpected{std::format(invalid_error, key)};
     }
 
-    std::expected<std::optional<std::string_view>, std::string>
+    template <typename T>
+    std::expected<std::optional<T>, std::string>
     extract_optional(const toml::table &table, std::string_view key) {
       const auto *node = table.get(key);
 
       if (!node)
         return std::nullopt;
 
-      if (auto value = node->value<std::string_view>())
-        return *value;
+      if constexpr (std::same_as<T, std::string_view>) {
+        if (!node->is_string())
+          return std::unexpected{std::format(invalid_error, key)};
+      } else if (!node->is<T>())
+        return std::unexpected{std::format(invalid_error, key)};
 
-      return std::unexpected{std::format(invalid_error, key)};
+      return node->value<T>().value();
     }
 
     using namespace std::literals::string_view_literals;
@@ -96,7 +100,7 @@ namespace drum::manifest {
 
       {
         auto result =
-            extract_optional(table, "standard")
+            extract_optional<std::string_view>(table, "standard")
                 .and_then(
                     [](auto value) -> std::expected<
                                        std::optional<Manifest::Build::Standard>,
@@ -116,7 +120,7 @@ namespace drum::manifest {
 
       {
         auto result =
-            extract_optional(table, "warnings")
+            extract_optional<std::string_view>(table, "warnings")
                 .and_then(
                     [](auto value) -> std::expected<
                                        std::optional<Manifest::Build::Warnings>,
@@ -132,6 +136,25 @@ namespace drum::manifest {
 
         if (*result)
           build.warnings = **result;
+      }
+
+      {
+        auto result =
+            extract_optional<bool>(table, "warnings_as_errors")
+                .and_then(
+                    [](auto value)
+                        -> std::expected<std::optional<bool>, std::string> {
+                      if (!value)
+                        return std::nullopt;
+
+                      return *value;
+                    });
+
+        if (!result)
+          return std::unexpected{std::move(result).error()};
+
+        if (*result)
+          build.warnings_as_errors = **result;
       }
 
       return build;

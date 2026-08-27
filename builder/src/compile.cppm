@@ -39,8 +39,8 @@ namespace drum::builder_cmd::compile {
       static constexpr std::array<std::string_view, 1> warnings_none{"-w"};
       static constexpr std::array<std::string_view, 2> warnings_all{"-Wall",
                                                                     "-Wextra"};
-      static constexpr std::array<std::string_view, 2> warnings_pedantic{
-          "-Wall", "-Wpedantic"};
+      static constexpr std::array<std::string_view, 3> warnings_pedantic{
+          "-Wall", "-Wextra", "-Wpedantic"};
 
       switch (warnings) {
       case none:
@@ -70,6 +70,9 @@ namespace drum::builder_cmd::compile {
       args.append_range(get_warnings(manifest.build.warnings) |
                         std::views::transform(
                             [](auto warning) { return std::string{warning}; }));
+
+      if (manifest.build.warnings_as_errors)
+        args.push_back("-Werror");
 
       return process::run_process(args);
     }

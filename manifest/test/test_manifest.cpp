@@ -78,6 +78,18 @@ namespace drum::manifest::test {
         "Invalid warnings");
   }
 
+  TEST_CASE("Invalid warnings_as_errors") {
+    const test_util::TestEnvironment env{};
+    require_parse_error(
+        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
+        "[build]\nwarnings_as_errors = \"foo\"",
+        "Invalid warnings_as_errors");
+    require_parse_error(
+        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
+        "[build]\nwarnings_as_errors = 42",
+        "Invalid warnings_as_errors");
+  }
+
   TEST_CASE("Valid exec manifest") {
     const test_util::TestEnvironment env{};
 
@@ -93,6 +105,7 @@ namespace drum::manifest::test {
         (result->timestamp == std::filesystem::last_write_time("drum.toml")));
     REQUIRE(result->build.standard == Manifest::Build::Standard::cpp23);
     REQUIRE(result->build.warnings == Manifest::Build::Warnings::default_);
+    REQUIRE_FALSE(result->build.warnings_as_errors);
   }
 
   TEST_CASE("Valid lib manifest") {
@@ -105,6 +118,7 @@ namespace drum::manifest::test {
     REQUIRE(result->name == "lib_pkg");
     REQUIRE(result->version == "0.2.0");
     REQUIRE(result->type == Manifest::Type::lib);
+    REQUIRE_FALSE(result->build.warnings_as_errors);
   }
 
   TEST_CASE("Standard parsed from build table") {
@@ -143,6 +157,23 @@ namespace drum::manifest::test {
       const auto result = parse();
       REQUIRE(result);
       REQUIRE(result->build.warnings == expected);
+    }
+  }
+
+  TEST_CASE("Warnings_as_errors parsed from build table") {
+    const test_util::TestEnvironment env{};
+
+    const auto cases = {std::pair{true, true}, std::pair{false, false}};
+    for (const auto &[value, expected] : cases) {
+      test_util::write_file(
+          "drum.toml",
+          std::format(
+              "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"\n"
+              "[build]\nwarnings_as_errors = {}",
+              value));
+      const auto result = parse();
+      REQUIRE(result);
+      REQUIRE(result->build.warnings_as_errors == expected);
     }
   }
 } // namespace drum::manifest::test
