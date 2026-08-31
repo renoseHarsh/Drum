@@ -11,6 +11,7 @@ drum_add_command(
   src/archive.cppm
   src/log.cppm
   src/cache.cppm
+  src/compiler.cppm
   SOURCES
   src/builder_cmd.cpp
   PUBLIC_LIBRARIES
@@ -22,5 +23,6 @@ drum_add_command(
   test/test_link.cpp
   test/test_dependency.cpp
   test/test_archive.cpp
+  test/test_compiler.cpp
   TEST_SOURCES
   test/test_builder_cmd.cpp)

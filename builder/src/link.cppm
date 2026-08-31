@@ -13,15 +13,14 @@ namespace drum::builder_cmd::link {
   namespace {
     std::expected<void, std::string>
     link_objects(const std::vector<fs::path> &objects, const fs::path &output) {
-      std::vector<std::string> args{"clang++"};
-      args.reserve(objects.size() + 3);
+      std::array<std::string, 2> invocation{"-o", output.string()};
 
+      std::vector<std::string> args{};
+      args.reserve(objects.size());
       std::ranges::transform(objects, std::back_inserter(args),
                              [](const fs::path &p) { return p.string(); });
-      args.push_back("-o");
-      args.push_back(output.string());
 
-      return process::run_process(args);
+      return process::run_process("clang++", invocation, args);
     }
   } // namespace
 

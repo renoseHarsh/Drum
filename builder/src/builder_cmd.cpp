@@ -6,6 +6,7 @@ import :discover;
 import :compile;
 import :link;
 import :archive;
+import :compiler;
 
 import manifest;
 
@@ -28,6 +29,7 @@ namespace drum::builder_cmd {
 
   std::expected<void, std::string> execute(const BuildArgs &,
                                            const manifest::Manifest &manifest) {
+    compiler::Compiler compiler{};
 
     switch (manifest.type) {
     case manifest::Manifest::Type::exec:
@@ -39,12 +41,19 @@ namespace drum::builder_cmd {
       if (!is_valid_lib_dir()) {
         return std::unexpected{"Invalid executable package layout"};
       }
+      compiler.add_include_directory("include");
       break;
     }
 
+    const auto &build = manifest.build;
+    compiler.set_standard(build.standard)
+        .set_warnings(build.warnings)
+        .set_warnings_as_errors(build.warnings_as_errors)
+        .set_extra_flags(build.extra_flags);
+
     return discover::discover()
         .and_then([&](std::vector<fs::path> srcs) {
-          return compile::compile(srcs, manifest);
+          return compile::compile(srcs, compiler, manifest.timestamp);
         })
         .and_then([&](std::vector<fs::path> objs) {
           switch (manifest.type) {

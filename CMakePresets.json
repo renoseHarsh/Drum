@@ -10,7 +10,7 @@
                 "CMAKE_CXX_COMPILER": "clang++",
                 "CMAKE_AR": "llvm-ar",
                 "CMAKE_RANLIB": "llvm-ranlib",
-                "CMAKE_CXX_STDLIB_MODULES_JSON": "/opt/homebrew/Cellar/llvm/22.1.8_2/lib/c++/libc++.modules.json",
+                "CMAKE_CXX_STDLIB_MODULES_JSON": "/opt/homebrew/Cellar/llvm/23.1.0/lib/c++/libc++.modules.json",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
             }
         },

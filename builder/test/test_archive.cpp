@@ -15,16 +15,21 @@ namespace fs = std::filesystem;
 
 namespace drum::builder_cmd::archive::test {
   namespace {
-    constexpr manifest::Manifest manifest{"test", "0.1.0",
-                                          manifest::Manifest::Type::exec};
+    using clock = fs::file_time_type::clock;
+
+    const compiler::Compiler compiler{};
+    const fs::file_time_type manifest_timestamp = clock::now();
 
     std::vector<fs::path> build_objects() {
       test_util::write_file("src/math.cpp",
                             "int add(int a, int b) { return a + b; }\n");
-      const auto objects = compile::compile({"src/math.cpp"}, manifest);
+      const auto objects =
+          compile::compile({"src/math.cpp"}, compiler, manifest_timestamp);
       REQUIRE(objects);
       return *objects;
     }
+
+    const fs::file_time_type past = clock::now() - std::chrono::seconds{10};
   } // namespace
 
   TEST_CASE("Archives compiled objects into a static library") {
@@ -51,11 +56,6 @@ namespace drum::builder_cmd::archive::test {
     REQUIRE(result);
     REQUIRE_FALSE(fs::exists("build/libmath.a"));
   }
-
-  namespace {
-    using clock = fs::file_time_type::clock;
-    const fs::file_time_type past = clock::now() - std::chrono::seconds{10};
-  } // namespace
 
   TEST_CASE("Cache hit: unchanged objects do not rearchive") {
     const test_util::TestEnvironment env{};

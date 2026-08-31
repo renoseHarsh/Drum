@@ -11,13 +11,20 @@ import std;
 
 namespace drum::builder_cmd::process {
   std::expected<void, std::string>
-  run_process(const std::vector<std::string> &args) {
-    std::vector<char *> argv(args.size() + 1);
+  run_process(const std::string &executable,
+              std::span<const std::string> invocation = {},
+              std::span<const std::string> args = {}) {
 
-    std::ranges::transform(args, argv.begin(), [](const std::string &arg) {
-      return const_cast<char *>(arg.c_str());
-    });
-    argv.back() = nullptr;
+    std::vector<char *> argv{};
+    argv.reserve(invocation.size() + args.size() + 2);
+
+    auto to_c_str = std::views::transform(
+        [](const std::string &str) { return const_cast<char *>(str.c_str()); });
+
+    argv.push_back(const_cast<char *>(executable.c_str()));
+    argv.append_range(invocation | to_c_str);
+    argv.append_range(args | to_c_str);
+    argv.push_back(nullptr);
 
     char **envp = *_NSGetEnviron();
     pid_t pid;

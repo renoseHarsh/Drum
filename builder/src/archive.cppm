@@ -13,15 +13,14 @@ namespace drum::builder_cmd::archive {
     std::expected<void, std::string>
     archive_objects(const std::vector<fs::path> &objects,
                     const fs::path &output) {
-      std::vector<std::string> args{"ar"};
-      args.reserve(objects.size() + 3);
+      std::array<std::string, 2> invocation{"rcs", output.string()};
 
-      args.push_back("rcs");
-      args.push_back(output.string());
+      std::vector<std::string> args{};
+      args.reserve(objects.size());
       std::ranges::transform(objects, std::back_inserter(args),
                              [](const fs::path &p) { return p.string(); });
 
-      return process::run_process(args);
+      return process::run_process("ar", invocation, args);
     }
   } // namespace
 
