@@ -27,7 +27,7 @@ namespace drum::builder_cmd {
     }
   } // namespace
 
-  std::expected<void, std::string> execute(const BuildArgs &,
+  std::expected<void, std::string> execute(const BuildArgs &args,
                                            const manifest::Manifest &manifest) {
     compiler::Compiler compiler{};
 
@@ -50,6 +50,9 @@ namespace drum::builder_cmd {
         .set_warnings(build.warnings)
         .set_warnings_as_errors(build.warnings_as_errors)
         .set_extra_flags(build.extra_flags);
+
+    const auto &profile = args.release ? manifest.release : manifest.debug;
+    compiler.set_optimization(profile.optimization).set_debug(profile.debug);
 
     return discover::discover()
         .and_then([&](std::vector<fs::path> srcs) {

@@ -98,6 +98,30 @@ type = "exec"
         "Invalid extra_flags");
   }
 
+  TEST_CASE("Invalid optimization") {
+    const test_util::TestEnvironment env{};
+    require_parse_error(
+        std::format("{}[profile.debug]\noptimization = 4", base_manifest),
+        "Invalid optimization");
+    require_parse_error(
+        std::format("{}[profile.release]\noptimization = -1", base_manifest),
+        "Invalid optimization");
+    // wrong type
+    require_parse_error(
+        std::format("{}[profile.debug]\noptimization = \"O2\"", base_manifest),
+        "Invalid optimization");
+  }
+
+  TEST_CASE("Invalid debug") {
+    const test_util::TestEnvironment env{};
+    require_parse_error(
+        std::format("{}[profile.debug]\ndebug = \"yes\"", base_manifest),
+        "Invalid debug");
+    require_parse_error(
+        std::format("{}[profile.release]\ndebug = 1", base_manifest),
+        "Invalid debug");
+  }
+
   TEST_CASE("Valid exec manifest") {
     const test_util::TestEnvironment env{};
 
@@ -115,6 +139,11 @@ type = "exec"
     REQUIRE(result->build.warnings == Manifest::Build::Warnings::default_);
     REQUIRE_FALSE(result->build.warnings_as_errors);
     REQUIRE(result->build.extra_flags.empty());
+    REQUIRE(result->debug.optimization == Manifest::Profile::Optimization::O0);
+    REQUIRE(result->debug.debug);
+    REQUIRE_FALSE(result->release.debug);
+    REQUIRE(result->release.optimization ==
+            Manifest::Profile::Optimization::O3);
   }
 
   TEST_CASE("Valid lib manifest") {
@@ -129,6 +158,11 @@ type = "exec"
     REQUIRE(result->type == Manifest::Type::lib);
     REQUIRE_FALSE(result->build.warnings_as_errors);
     REQUIRE(result->build.extra_flags.empty());
+    REQUIRE(result->debug.optimization == Manifest::Profile::Optimization::O0);
+    REQUIRE(result->debug.debug);
+    REQUIRE_FALSE(result->release.debug);
+    REQUIRE(result->release.optimization ==
+            Manifest::Profile::Optimization::O3);
   }
 
   TEST_CASE("Standard parsed from build table") {
@@ -199,5 +233,40 @@ type = "exec"
     const auto result = parse();
     REQUIRE(result);
     REQUIRE(result->build.extra_flags == extra_flags);
+  }
+
+  TEST_CASE("Profiles parsed from profile table") {
+    const test_util::TestEnvironment env{};
+
+    test_util::write_file(
+        "drum.toml",
+        std::format("{0}[profile.debug]\noptimization = 1\ndebug = true\n\n"
+                    "[profile.release]\noptimization = 2\ndebug = false\n",
+                    base_manifest));
+    const auto result = parse();
+    REQUIRE(result);
+
+    using enum manifest::Manifest::Profile::Optimization;
+    REQUIRE(result->debug.optimization == O1);
+    REQUIRE(result->debug.debug);
+    REQUIRE(result->release.optimization == O2);
+    REQUIRE_FALSE(result->release.debug);
+  }
+
+  TEST_CASE("Partial profile overrides keep defaults") {
+    const test_util::TestEnvironment env{};
+
+    test_util::write_file("drum.toml",
+                          std::format("{0}[profile.debug]\noptimization = 2\n\n"
+                                      "[profile.release]\ndebug = true\n",
+                                      base_manifest));
+    const auto result = parse();
+    REQUIRE(result);
+
+    using enum manifest::Manifest::Profile::Optimization;
+    REQUIRE(result->debug.optimization == O2);   // overridden
+    REQUIRE(result->debug.debug);                // default true kept
+    REQUIRE(result->release.optimization == O3); // default O3 kept
+    REQUIRE(result->release.debug);              // overridden
   }
 } // namespace drum::manifest::test

@@ -117,4 +117,36 @@ namespace drum::builder_cmd::compiler::test {
                                      "-Wpedantic"sv, "-Werror"sv, "-Iinclude"sv,
                                      "-march=native"sv, "-fno-rtti"sv});
   }
+
+  TEST_CASE("Optimization flags are emitted") {
+    using enum manifest::Manifest::Profile::Optimization;
+
+    const std::array cases{
+        std::pair{O0, "-O0"sv},
+        std::pair{O1, "-O1"sv},
+        std::pair{O2, "-O2"sv},
+        std::pair{O3, "-O3"sv},
+    };
+
+    for (const auto &[level, expected] : cases) {
+      Compiler compiler{};
+
+      compiler.set_optimization(level);
+      require_compiler_args(compiler, std::array{expected});
+    }
+  }
+
+  TEST_CASE("Debug flags are emitted") {
+    const std::array cases{
+        std::pair{true, "-g"sv},
+        std::pair{false, "-DNDEBUG"sv},
+    };
+
+    for (const auto &[debug, expected] : cases) {
+      Compiler compiler{};
+
+      compiler.set_debug(debug);
+      require_compiler_args(compiler, std::array{expected});
+    }
+  }
 } // namespace drum::builder_cmd::compiler::test

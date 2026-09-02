@@ -40,7 +40,8 @@ int main(int argc, char *argv[]) {
                      return std::unexpected{"Can't run a library package"};
                    }
 
-                   auto builder_res = drum::builder_cmd::execute({}, m);
+                   auto builder_res =
+                       drum::builder_cmd::execute({arg.release}, m);
                    if (!builder_res) {
                      return std::unexpected{std::move(builder_res).error()};
                    }

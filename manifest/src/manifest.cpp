@@ -168,16 +168,7 @@ namespace drum::manifest {
       }
 
       {
-        auto result =
-            extract_optional<bool>(table, "warnings_as_errors")
-                .and_then(
-                    [](auto value)
-                        -> std::expected<std::optional<bool>, std::string> {
-                      if (!value)
-                        return std::nullopt;
-
-                      return *value;
-                    });
+        auto result = extract_optional<bool>(table, "warnings_as_errors");
 
         if (!result)
           return std::unexpected{std::move(result).error()};
@@ -187,17 +178,7 @@ namespace drum::manifest {
       }
 
       {
-        auto result =
-            extract_optional_array<std::string>(table, "extra_flags")
-                .and_then(
-                    [](auto value) -> std::expected<
-                                       std::optional<std::vector<std::string>>,
-                                       std::string> {
-                      if (!value)
-                        return std::nullopt;
-
-                      return *value;
-                    });
+        auto result = extract_optional_array<std::string>(table, "extra_flags");
 
         if (!result)
           return std::unexpected{std::move(result).error()};
@@ -207,6 +188,50 @@ namespace drum::manifest {
       }
 
       return build;
+    }
+
+    std::expected<Manifest::Profile::Optimization, std::string>
+    parse_optimization(std::int64_t value) {
+      if (value < 0 || value > 3)
+        return std::unexpected{std::format(invalid_error, "optimization")};
+
+      return static_cast<Manifest::Profile::Optimization>(value);
+    }
+
+    std::expected<Manifest::Profile, std::string>
+    parse_profile(const toml::table &table, Manifest::Profile profile) {
+      {
+        auto result =
+            extract_optional<std::int64_t>(table, "optimization")
+                .and_then(
+                    [](auto value)
+                        -> std::expected<
+                            std::optional<Manifest::Profile::Optimization>,
+                            std::string> {
+                      if (!value)
+                        return std::nullopt;
+
+                      return parse_optimization(*value);
+                    });
+
+        if (!result)
+          return std::unexpected{std::move(result).error()};
+
+        if (*result)
+          profile.optimization = **result;
+      }
+
+      {
+        auto result = extract_optional<bool>(table, "debug");
+
+        if (!result)
+          return std::unexpected{std::move(result).error()};
+
+        if (*result)
+          profile.debug = **result;
+      }
+
+      return profile;
     }
 
   } // namespace
@@ -249,13 +274,33 @@ namespace drum::manifest {
       manifest.type = *result;
     }
 
-    if (auto build_table = t["build"].as_table()) {
+    if (const auto build_table = t["build"].as_table()) {
       {
         auto result = parse_build(*build_table);
         if (!result)
           return std::unexpected{std::move(result).error()};
 
         manifest.build = std::move(*result);
+      }
+    }
+
+    if (const auto profile_table = t["profile"].as_table()) {
+      if (auto debug_table = (*profile_table)["debug"].as_table()) {
+        auto result = parse_profile(*debug_table, manifest.debug);
+
+        if (!result)
+          return std::unexpected{std::move(result).error()};
+
+        manifest.debug = std::move(*result);
+      }
+
+      if (auto debug_table = (*profile_table)["release"].as_table()) {
+        auto result = parse_profile(*debug_table, manifest.release);
+
+        if (!result)
+          return std::unexpected{std::move(result).error()};
+
+        manifest.release = std::move(*result);
       }
     }
 

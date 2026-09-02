@@ -68,6 +68,31 @@ namespace drum::builder_cmd::compiler {
       return *this;
     }
 
+    Compiler &set_optimization(Manifest::Profile::Optimization optimization) {
+      using enum Manifest::Profile::Optimization;
+
+      constexpr std::array optimizations{
+          "-O0",
+          "-O1",
+          "-O2",
+          "-O3",
+      };
+
+      args_.push_back(optimizations[static_cast<std::size_t>(
+          std::to_underlying(optimization))]);
+
+      return *this;
+    }
+
+    Compiler &set_debug(bool debug) {
+      if (debug)
+        args_.push_back("-g");
+      else
+        args_.push_back("-DNDEBUG");
+
+      return *this;
+    }
+
     const std::vector<std::string> &args() const { return args_; }
 
   private:

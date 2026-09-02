@@ -37,6 +37,26 @@ namespace drum::parser {
       return new_args;
     }
 
+    template <typename T>
+    std::expected<T, std::string>
+    parse_build_run_args(int argc, const char *const argv[]) {
+      T args{};
+
+      for (int i = 2; i < argc; ++i) {
+        const std::string_view option{argv[i]};
+
+        if (option == "--release") {
+          args.release = true;
+          continue;
+        }
+
+        return std::unexpected{
+            std::format("Unknown option for build: {}", option)};
+      }
+
+      return args;
+    }
+
   } // namespace
 
   std::expected<Command, std::string>
@@ -45,13 +65,13 @@ namespace drum::parser {
       return std::unexpected{"Provide a command"};
 
     const std::string cmd{argv[1]};
-    if (cmd == "new") {
+    if (cmd == "new")
       return parse_new_args(argc, argv);
-    } else if (cmd == "build") {
-      return builder_cmd::BuildArgs{};
-    } else if (cmd == "run") {
-      return run_cmd::RunArgs{};
-    }
+    else if (cmd == "build")
+      return parse_build_run_args<builder_cmd::BuildArgs>(argc, argv);
+    else if (cmd == "run")
+      return parse_build_run_args<run_cmd::RunArgs>(argc, argv);
+
     return std::unexpected{std::format("Unknown command: {}", cmd)};
   }
 

@@ -11,4 +11,6 @@ drum_add_command(
   run_cmd
   TEST_SOURCES
   test/test_parser.cpp
-  test/test_new.cpp)
+  test/test_new.cpp
+  test/test_builder.cpp
+  test/test_run.cpp)
