@@ -1,1 +1,6 @@
 NamespaceIndentation: All
+BreakBinaryOperations:
+  Default: Never
+  PerOperator:
+    - Operators: ['|']
+      Style: OnePerLine

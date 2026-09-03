@@ -43,7 +43,8 @@ namespace drum::builder_cmd::dependency {
     target.erase(target.find_last_not_of(' ') + 1);
     std::string_view dependency_view =
         std::string_view{dependency_text}.substr(colon + 1);
-    auto filter_view = dependency_view | std::views::split(' ') |
+    auto filter_view = dependency_view |
+                       std::views::split(' ') |
                        std::views::filter([](const auto &r) {
                          return !std::ranges::empty(r);
                        });
