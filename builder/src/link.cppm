@@ -25,16 +25,13 @@ namespace drum::builder_cmd::link {
   } // namespace
 
   std::expected<void, std::string> link(const std::vector<fs::path> &objects,
-                                        std::string_view output) {
+                                        fs::path output_path) {
     if (auto result = cache::ensure_build_dir(); !result)
       return result;
 
     if (objects.empty()) {
       return {};
     }
-
-    fs::path output_path = "build";
-    output_path /= output;
 
     if (!cache::output_is_stale(output_path, objects)) {
       log::cache_hit(output_path);

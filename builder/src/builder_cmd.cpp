@@ -53,18 +53,34 @@ namespace drum::builder_cmd {
 
     const auto &profile = args.release ? manifest.release : manifest.debug;
     compiler.set_optimization(profile.optimization).set_debug(profile.debug);
+    const fs::path profile_dir{args.release ? "release" : "debug"};
+    const fs::path output_dir{"build" / profile_dir};
+    fs::path output_path{output_dir / manifest.name};
+
+    if (manifest.type == manifest::Manifest::Type::lib)
+      output_path.replace_extension(".a");
 
     return discover::discover()
         .and_then([&](std::vector<fs::path> srcs) {
-          return compile::compile(srcs, compiler, manifest.timestamp);
+          const auto source_objects = srcs |
+                                      std::views::transform([&](auto src) {
+                                        fs::path obj{output_dir};
+                                        obj /= src.lexically_relative("src/");
+                                        obj.replace_extension(".o");
+                                        return std::pair{std::move(src), obj};
+                                      }) |
+                                      std::ranges::to<std::vector>();
+
+          return compile::compile(std::move(source_objects), compiler,
+                                  manifest.timestamp);
         })
         .and_then([&](std::vector<fs::path> objs) {
           switch (manifest.type) {
           case manifest::Manifest::Type::exec:
-            return link::link(objs, manifest.name);
+            return link::link(objs, output_path);
 
           case manifest::Manifest::Type::lib:
-            return archive::archive(objs, manifest.name);
+            return archive::archive(objs, output_path);
           }
 
           std::unreachable();

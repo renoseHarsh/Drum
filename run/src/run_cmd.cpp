@@ -10,9 +10,10 @@ import std;
 import manifest;
 
 namespace drum::run_cmd {
-  std::expected<void, std::string> execute(const RunArgs &,
+  std::expected<void, std::string> execute(const RunArgs &args,
                                            const manifest::Manifest &manifest) {
-    const std::string output = std::format("build/{}", manifest.name);
+    const std::string output = std::format(
+        "build/{}/{}", args.release ? "release" : "debug", manifest.name);
     const std::vector<char *> argv{const_cast<char *>(output.data()), nullptr};
 
     execvp(output.data(), argv.data());

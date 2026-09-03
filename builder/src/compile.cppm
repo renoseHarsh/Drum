@@ -51,26 +51,26 @@ namespace drum::builder_cmd::compile {
     }
   } // namespace
 
+  using SourceObject = std::pair<fs::path, fs::path>;
   std::expected<std::vector<fs::path>, std::string>
-  compile(const std::vector<fs::path> &sources,
+  compile(std::vector<SourceObject> sources_objects,
           const compiler::Compiler &compiler,
-          const fs::file_time_type manifest_lastwrite) {
+          fs::file_time_type manifest_lastwrite) {
     std::vector<fs::path> objects{};
-    objects.reserve(sources.size());
+    objects.reserve(sources_objects.size());
 
-    for (const auto &source : sources) {
-      fs::path obj{"build"};
-      obj /= source.lexically_relative("src/");
-      obj.replace_extension(".o");
+    for (auto &[src, obj] : std::move(sources_objects)) {
 
       std::error_code ec;
       if (!fs::exists(obj, ec) || object_is_stale(obj, manifest_lastwrite)) {
         log::compile(obj);
-        fs::create_directories(obj.parent_path(), ec);
-        if (ec)
-          return std::unexpected{"Error in creating build directory"};
+        if (const auto parent = obj.parent_path(); !parent.empty()) {
+          fs::create_directories(parent, ec);
+          if (ec)
+            return std::unexpected{"Error in creating build directory"};
+        }
 
-        if (auto result = compile_source(source, obj, compiler); !result)
+        if (auto result = compile_source(src, obj, compiler); !result)
           return std::unexpected{std::move(result).error()};
 
       } else

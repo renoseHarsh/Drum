@@ -22,12 +22,17 @@ namespace drum::builder_cmd::compile::test {
     const fs::file_time_type manifest_timestamp =
         now - std::chrono::seconds{10};
 
+    const fs::path main_src{"main.cpp"};
+    const fs::path main_obj{"main.o"};
+    const fs::path main_dep{"main.d"};
+
     void setup() {
-      test_util::write_file("src/main.cpp",
+      test_util::write_file("main.cpp",
                             "#include \"header.h\"\nint main() {}\n");
-      test_util::write_file("src/header.h", "int x;\n");
+      test_util::write_file("header.h", "int x;\n");
+
       const auto result =
-          compile({"src/main.cpp"}, compiler, manifest_timestamp);
+          compile({{main_src, main_obj}}, compiler, manifest_timestamp);
       REQUIRE(result);
     }
 
@@ -39,7 +44,7 @@ namespace drum::builder_cmd::compile::test {
     const test_util::TestEnvironment env{};
 
     const auto result =
-        compile({"src/missing.cpp"}, compiler, manifest_timestamp);
+        compile({{"missing.cpp", "missing.o"}}, compiler, manifest_timestamp);
     REQUIRE_FALSE(result);
   }
 
@@ -47,136 +52,130 @@ namespace drum::builder_cmd::compile::test {
     const test_util::TestEnvironment env{};
     setup();
 
-    REQUIRE(fs::exists("build/main.o"));
-    REQUIRE(fs::exists("build/main.d"));
+    REQUIRE(fs::exists(main_obj));
+    REQUIRE(fs::exists(main_dep));
   }
 
-  TEST_CASE("Preserves source directory structure in object path") {
+  TEST_CASE("Compiles to a nested object path") {
     const test_util::TestEnvironment env{};
 
-    test_util::write_file("src/foo/bar.cpp", "void bar() {}\n");
+    test_util::write_file("bar.cpp", "void bar() {}\n");
 
     const auto result =
-        compile({"src/foo/bar.cpp"}, compiler, manifest_timestamp);
+        compile({{"bar.cpp", "foo/bar.o"}}, compiler, manifest_timestamp);
 
     REQUIRE(result);
-    REQUIRE(*result == std::vector<fs::path>{"build/foo/bar.o"});
-    REQUIRE(fs::exists("build/foo/bar.o"));
+    REQUIRE(std::ranges::equal(*result, std::array{"foo/bar.o"}));
+    REQUIRE(fs::exists("foo/bar.o"));
   }
 
   TEST_CASE("Cache hit: unchanged inputs do not recompile") {
     const test_util::TestEnvironment env{};
     setup();
 
-    const auto baseline = fs::last_write_time("build/main.o");
-    const auto result = compile({"src/main.cpp"}, compiler, manifest_timestamp);
+    const auto baseline = fs::last_write_time(main_obj);
 
-    REQUIRE(result);
-    REQUIRE((*result == std::vector<fs::path>{"build/main.o"}));
-    REQUIRE((fs::last_write_time("build/main.o") == baseline));
+    REQUIRE(compile({{main_src, main_obj}}, compiler, manifest_timestamp));
+    REQUIRE((fs::last_write_time(main_obj) == baseline));
   }
 
   TEST_CASE("Recompiles when manifest is newer than object") {
     const test_util::TestEnvironment env{};
     setup();
 
-    const auto baseline = fs::last_write_time("build/main.o");
+    const auto baseline = fs::last_write_time(main_obj);
 
-    REQUIRE(compile({"src/main.cpp"}, compiler, future));
-    REQUIRE((fs::last_write_time("build/main.o") > baseline));
+    REQUIRE(compile({{main_src, main_obj}}, compiler, future));
+    REQUIRE((fs::last_write_time(main_obj) > baseline));
   }
 
   TEST_CASE("Recompiles when source file is newer than object") {
     const test_util::TestEnvironment env{};
     setup();
 
-    const auto baseline = fs::last_write_time("build/main.o");
-    fs::last_write_time("src/main.cpp", future);
+    const auto baseline = fs::last_write_time(main_obj);
+    fs::last_write_time(main_src, future);
 
-    REQUIRE(compile({"src/main.cpp"}, compiler, manifest_timestamp));
-    REQUIRE((fs::last_write_time("build/main.o") > baseline));
+    REQUIRE(compile({{main_src, main_obj}}, compiler, manifest_timestamp));
+    REQUIRE((fs::last_write_time(main_obj) > baseline));
   }
 
   TEST_CASE("Recompiles when header dependency is newer than object") {
     const test_util::TestEnvironment env{};
     setup();
 
-    const auto baseline = fs::last_write_time("build/main.o");
-    fs::last_write_time("src/header.h", future);
+    const auto baseline = fs::last_write_time(main_obj);
+    fs::last_write_time("header.h", future);
 
-    REQUIRE(compile({"src/main.cpp"}, compiler, manifest_timestamp));
-    REQUIRE((fs::last_write_time("build/main.o") > baseline));
+    REQUIRE(compile({{main_src, main_obj}}, compiler, manifest_timestamp));
+    REQUIRE((fs::last_write_time(main_obj) > baseline));
   }
 
   TEST_CASE("Unrelated header change does not recompile") {
     const test_util::TestEnvironment env{};
-    test_util::write_file("src/unrelated.h", "int y;\n");
+    test_util::write_file("unrelated.h", "int y;\n");
     setup();
 
-    const auto baseline = fs::last_write_time("build/main.o");
-    fs::last_write_time("src/unrelated.h", future);
+    const auto baseline = fs::last_write_time(main_obj);
+    fs::last_write_time("unrelated.h", future);
 
-    REQUIRE(compile({"src/main.cpp"}, compiler, manifest_timestamp));
-    REQUIRE((fs::last_write_time("build/main.o") == baseline));
+    REQUIRE(compile({{main_src, main_obj}}, compiler, manifest_timestamp));
+    REQUIRE((fs::last_write_time(main_obj) == baseline));
   }
 
   TEST_CASE("Recompiles when dependency file is missing") {
     const test_util::TestEnvironment env{};
     setup();
 
-    const auto baseline = fs::last_write_time("build/main.o");
-    fs::remove("build/main.d");
+    const auto baseline = fs::last_write_time(main_obj);
+    fs::remove(main_dep);
 
-    REQUIRE(compile({"src/main.cpp"}, compiler, manifest_timestamp));
-    REQUIRE((fs::last_write_time("build/main.o") > baseline));
-    REQUIRE(fs::exists("build/main.d"));
+    REQUIRE(compile({{main_src, main_obj}}, compiler, manifest_timestamp));
+    REQUIRE((fs::last_write_time(main_obj) > baseline));
+    REQUIRE(fs::exists(main_dep));
   }
 
   TEST_CASE("Recompiles when dependency target mismatches object") {
     const test_util::TestEnvironment env{};
     setup();
 
-    const auto baseline = fs::last_write_time("build/main.o");
-    test_util::write_file("build/main.d", "wrong.o: src/main.cpp src/header.h");
+    const auto baseline = fs::last_write_time(main_obj);
+    test_util::write_file(main_dep, "wrong.o: src/main.cpp src/header.h");
 
-    REQUIRE(compile({"src/main.cpp"}, compiler, manifest_timestamp));
-    REQUIRE((fs::last_write_time("build/main.o") > baseline));
-    REQUIRE(fs::exists("build/main.d"));
+    REQUIRE(compile({{main_src, main_obj}}, compiler, manifest_timestamp));
+    REQUIRE((fs::last_write_time(main_obj) > baseline));
+    REQUIRE(fs::exists(main_dep));
   }
 
   TEST_CASE("Recompiles when a listed dependency has been removed") {
     const test_util::TestEnvironment env{};
     setup();
 
-    const auto baseline = fs::last_write_time("build/main.o");
-    test_util::write_file("src/main.cpp", "int main() {}\n");
-    fs::last_write_time("src/main.cpp", past);
-    fs::remove("src/header.h");
+    const auto baseline = fs::last_write_time(main_obj);
+    test_util::write_file(main_src, "int main() {}\n");
+    fs::last_write_time(main_src, past);
+    fs::remove("header.h");
 
-    REQUIRE(compile({"src/main.cpp"}, compiler, manifest_timestamp));
-    REQUIRE((fs::last_write_time("build/main.o") > baseline));
-
-    const auto rebuilt = fs::last_write_time("build/main.o");
-    compile({"src/main.cpp"}, compiler, manifest_timestamp);
-    REQUIRE((fs::last_write_time("build/main.o") == rebuilt));
+    REQUIRE(compile({{main_src, main_obj}}, compiler, manifest_timestamp));
+    REQUIRE((fs::last_write_time(main_obj) > baseline));
   }
 
   TEST_CASE("Recompiles only the stale source in a multi-source build") {
     const test_util::TestEnvironment env{};
-    test_util::write_file("src/main.cpp", "int main() {}\n");
-    test_util::write_file("src/utils.cpp", "void util() {}\n");
+    test_util::write_file(main_src, "int main() {}\n");
+    test_util::write_file("utils.cpp", "void util() {}\n");
 
-    REQUIRE(compile({"src/main.cpp", "src/utils.cpp"}, compiler,
+    REQUIRE(compile({{main_src, main_obj}, {"utils.cpp", "utils.o"}}, compiler,
                     manifest_timestamp));
 
-    const auto main_baseline = fs::last_write_time("build/main.o");
-    const auto util_baseline = fs::last_write_time("build/utils.o");
+    const auto main_baseline = fs::last_write_time(main_obj);
+    const auto util_baseline = fs::last_write_time("utils.o");
 
-    fs::last_write_time("src/utils.cpp", future);
+    fs::last_write_time("utils.cpp", future);
 
-    REQUIRE(compile({"src/main.cpp", "src/utils.cpp"}, compiler,
+    REQUIRE(compile({{main_src, main_obj}, {"utils.cpp", "utils.o"}}, compiler,
                     manifest_timestamp));
-    REQUIRE((fs::last_write_time("build/main.o") == main_baseline));
-    REQUIRE((fs::last_write_time("build/utils.o") > util_baseline));
+    REQUIRE((fs::last_write_time(main_obj) == main_baseline));
+    REQUIRE((fs::last_write_time("utils.o") > util_baseline));
   }
 } // namespace drum::builder_cmd::compile::test

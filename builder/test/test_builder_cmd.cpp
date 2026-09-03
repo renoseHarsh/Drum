@@ -46,7 +46,22 @@ namespace drum::builder_cmd::test {
     const auto result =
         execute({}, {.name = "demo", .type = manifest::Manifest::Type::exec});
     REQUIRE(result);
-    REQUIRE(fs::exists("build/demo"));
+    REQUIRE(fs::exists("build/debug/demo"));
+  }
+
+  TEST_CASE("Full pipeline produces release executable") {
+    const test_util::TestEnvironment env{};
+
+    test_util::write_file(
+        "drum.toml",
+        "name = \"test_pkg\"\nversion = \"0.1.0\"\ntype = \"exec\"");
+    test_util::write_file("src/main.cpp", "int main() {}");
+
+    const auto result =
+        execute({.release = true},
+                {.name = "demo", .type = manifest::Manifest::Type::exec});
+    REQUIRE(result);
+    REQUIRE(fs::exists("build/release/demo"));
   }
 
   TEST_CASE("Full pipeline produces static library") {
@@ -60,7 +75,7 @@ namespace drum::builder_cmd::test {
     const auto result =
         execute({}, {.name = "demo", .type = manifest::Manifest::Type::lib});
     REQUIRE(result);
-    REQUIRE(fs::exists("build/demo.a"));
+    REQUIRE(fs::exists("build/debug/demo.a"));
   }
 
   TEST_CASE("Compile failure propagates from pipeline") {
@@ -82,7 +97,7 @@ namespace drum::builder_cmd::test {
     const auto result =
         execute({}, {.name = "demo", .type = manifest::Manifest::Type::exec});
     REQUIRE(result);
-    REQUIRE(fs::exists("build/main.o"));
-    REQUIRE(fs::exists("build/core/util.o"));
+    REQUIRE(fs::exists("build/debug/main.o"));
+    REQUIRE(fs::exists("build/debug/core/util.o"));
   }
 } // namespace drum::builder_cmd::test
