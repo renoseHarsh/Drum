@@ -2,18 +2,18 @@ drum_add_command(
   NAME
   builder_cmd
   MODULES
-  src/builder_cmd.cppm
-  src/discover.cppm
-  src/compile.cppm
-  src/link.cppm
-  src/process.cppm
-  src/dependency.cppm
-  src/archive.cppm
-  src/log.cppm
-  src/cache.cppm
-  src/compiler.cppm
+  builder_cmd.cppm
+  discover.cppm
+  compile.cppm
+  link.cppm
+  process.cppm
+  dependency.cppm
+  archive.cppm
+  log.cppm
+  cache.cppm
+  compiler.cppm
   SOURCES
-  src/builder_cmd.cpp
+  builder_cmd.cpp
   PUBLIC_LIBRARIES
   manifest
   TEST_MODULES

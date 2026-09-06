@@ -1,0 +1,5 @@
+add_subdirectory(parser)
+add_subdirectory(new)
+add_subdirectory(builder)
+add_subdirectory(run)
+add_subdirectory(manifest)

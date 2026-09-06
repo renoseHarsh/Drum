@@ -46,9 +46,21 @@ target_compile_options(
             -Wnon-virtual-dtor
             -Wold-style-cast)
 
-add_subdirectory(drum)
-add_subdirectory(parser)
-add_subdirectory(new)
-add_subdirectory(builder)
-add_subdirectory(run)
-add_subdirectory(manifest)
+add_executable(drum)
+
+target_sources(drum PRIVATE src/main.cpp)
+target_include_directories(drum PRIVATE src/)
+target_link_libraries(drum PRIVATE project_warning parser new_cmd builder_cmd
+                                   run_cmd manifest)
+
+if(CMAKE_EXPORT_COMPILE_COMMANDS)
+  add_custom_command(
+    TARGET drum
+    POST_BUILD
+    COMMAND
+      ${CMAKE_COMMAND} -E create_symlink
+      ${CMAKE_BINARY_DIR}/compile_commands.json
+      ${CMAKE_SOURCE_DIR}/compile_commands.json)
+endif()
+
+add_subdirectory(src)

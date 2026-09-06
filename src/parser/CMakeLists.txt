@@ -2,9 +2,9 @@ drum_add_command(
   NAME
   parser
   MODULES
-  src/parser.cppm
+  parser.cppm
   SOURCES
-  src/parser.cpp
+  parser.cpp
   PUBLIC_LIBRARIES
   new_cmd
   builder_cmd

@@ -13,9 +13,9 @@ drum_add_command(
   NAME
   manifest
   MODULES
-  src/manifest.cppm
+  manifest.cppm
   SOURCES
-  src/manifest.cpp
+  manifest.cpp
   PRIVATE_LIBRARIES
   tomlplusplus_modules
   TEST_SOURCES
