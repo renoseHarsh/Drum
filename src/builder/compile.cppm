@@ -3,7 +3,7 @@ module builder_cmd:compile;
 import std;
 
 import :process;
-import :dependency;
+import :depfile;
 import :log;
 import :compiler;
 
@@ -35,7 +35,7 @@ namespace drum::builder_cmd::compile {
       auto dependency = object;
       dependency.replace_extension(".d");
 
-      const auto dependencies_result = dependency::get_dependencies(dependency);
+      const auto dependencies_result = depfile::parse(dependency);
       if (!dependencies_result)
         return true;
 

@@ -7,7 +7,7 @@ drum_add_command(
   compile.cppm
   link.cppm
   process.cppm
-  dependency.cppm
+  depfile.cppm
   archive.cppm
   log.cppm
   cache.cppm
@@ -21,7 +21,7 @@ drum_add_command(
   test/test_process.cpp
   test/test_compile.cpp
   test/test_link.cpp
-  test/test_dependency.cpp
+  test/test_depfile.cpp
   test/test_archive.cpp
   test/test_compiler.cpp
   TEST_SOURCES

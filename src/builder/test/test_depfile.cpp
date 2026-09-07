@@ -2,22 +2,22 @@ module;
 
 #include <catch2/catch_test_macros.hpp>
 
-module builder_cmd:test_dependency;
+module builder_cmd:test_depfile;
 
 import std;
 
-import :dependency;
+import :depfile;
 
 import test_util;
 
 namespace fs = std::filesystem;
 
-namespace drum::builder_cmd::dependency::test {
+namespace drum::builder_cmd::depfile::test {
   namespace {
     void check_deps(std::string_view content, std::string_view target,
                     std::vector<fs::path> deps) {
       test_util::write_file("main.d", content);
-      const auto result = get_dependencies("main.d");
+      const auto result = parse("main.d");
       REQUIRE(result);
 
       const auto &[got_target, got_deps] = *result;
@@ -28,19 +28,19 @@ namespace drum::builder_cmd::dependency::test {
 
   TEST_CASE("Missing file returns nullopt") {
     const test_util::TestEnvironment env{};
-    REQUIRE_FALSE(get_dependencies("missing.d"));
+    REQUIRE_FALSE(parse("missing.d"));
   }
 
   TEST_CASE("Empty file returns nullopt") {
     const test_util::TestEnvironment env{};
     test_util::write_file("main.d", "");
-    REQUIRE_FALSE(get_dependencies("main.d"));
+    REQUIRE_FALSE(parse("main.d"));
   }
 
   TEST_CASE("No colon returns nullopt") {
     const test_util::TestEnvironment env{};
     test_util::write_file("main.d", "just some text");
-    REQUIRE_FALSE(get_dependencies("main.d"));
+    REQUIRE_FALSE(parse("main.d"));
   }
 
   TEST_CASE("Single dependency") {
@@ -96,4 +96,4 @@ namespace drum::builder_cmd::dependency::test {
     const test_util::TestEnvironment env{};
     check_deps("  main.o : src/main.cpp  ", "main.o", {"src/main.cpp"});
   }
-}; // namespace drum::builder_cmd::dependency::test
+}; // namespace drum::builder_cmd::depfile::test
