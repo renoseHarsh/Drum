@@ -2,9 +2,9 @@ module builder_cmd:p1689;
 
 import std;
 
-import glaze;
-
 import :compiler;
+
+import glaze;
 
 namespace fs = std::filesystem;
 

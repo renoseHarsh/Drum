@@ -2,11 +2,11 @@ module builder_cmd;
 
 import std;
 
-import :discover;
-import :compile;
-import :link;
 import :archive;
+import :compile;
 import :compiler;
+import :discover;
+import :link;
 import :p1689;
 
 import manifest;

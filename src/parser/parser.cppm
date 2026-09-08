@@ -1,10 +1,10 @@
 export module parser;
 
+import std;
+
 export import new_cmd;
 export import builder_cmd;
 export import run_cmd;
-
-import std;
 
 export namespace drum::parser {
   using Command =

@@ -2,10 +2,10 @@ module builder_cmd:compile;
 
 import std;
 
-import :process;
-import :depfile;
-import :log;
 import :compiler;
+import :depfile;
+import :process;
+import :log;
 
 import manifest;
 

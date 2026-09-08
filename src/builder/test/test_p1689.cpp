@@ -6,11 +6,11 @@ module builder_cmd:test_p1689;
 
 import std;
 
-import test_util;
-import glaze;
-
 import :p1689;
 import :compiler;
+
+import test_util;
+import glaze;
 
 namespace drum::builder_cmd::p1689::test {
   TEST_CASE("Creates empty database") {
