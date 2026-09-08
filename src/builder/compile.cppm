@@ -53,13 +53,13 @@ namespace drum::builder_cmd::compile {
 
   using SourceObject = std::pair<fs::path, fs::path>;
   std::expected<std::vector<fs::path>, std::string>
-  compile(std::vector<SourceObject> sources_objects,
+  compile(std::vector<SourceObject> source_objects,
           const compiler::Compiler &compiler,
           fs::file_time_type manifest_lastwrite) {
     std::vector<fs::path> objects{};
-    objects.reserve(sources_objects.size());
+    objects.reserve(source_objects.size());
 
-    for (auto &[src, obj] : std::move(sources_objects)) {
+    for (auto &[src, obj] : std::move(source_objects)) {
 
       std::error_code ec;
       if (!fs::exists(obj, ec) || object_is_stale(obj, manifest_lastwrite)) {

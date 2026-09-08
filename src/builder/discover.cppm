@@ -20,7 +20,8 @@ namespace drum::builder_cmd::discover {
 
     while (it != end) {
       if (it->is_regular_file(ec)) {
-        if (it->path().extension() == ".cpp")
+        if (auto extension = it->path().extension();
+            extension == ".cpp" || extension == ".cppm")
           sources.push_back(it->path());
       } else if (ec) {
         return std::unexpected{"unexpected error: " + ec.message()};

@@ -7,6 +7,7 @@ import :compile;
 import :link;
 import :archive;
 import :compiler;
+import :p1689;
 
 import manifest;
 
@@ -60,20 +61,38 @@ namespace drum::builder_cmd {
     if (manifest.type == manifest::Manifest::Type::lib)
       output_path.replace_extension(".a");
 
-    return discover::discover()
-        .and_then([&](std::vector<fs::path> srcs) {
-          const auto source_objects = srcs |
-                                      std::views::transform([&](auto src) {
-                                        fs::path obj{output_dir};
-                                        obj /= src.lexically_relative("src/");
-                                        obj.replace_extension(".o");
-                                        return std::pair{std::move(src), obj};
-                                      }) |
-                                      std::ranges::to<std::vector>();
+    std::error_code ec;
+    fs::create_directories(output_dir, ec);
+    if (ec)
+      return std::unexpected{
+          std::format("Failed to create output directory '{}': {}",
+                      output_dir.string(), ec.message())};
 
-          return compile::compile(std::move(source_objects), compiler,
-                                  manifest.timestamp);
+    return discover::discover()
+
+        .transform([&](std::vector<fs::path> srcs) {
+          return srcs |
+                 std::views::transform([&](auto src) {
+                   fs::path obj{output_dir};
+                   obj /= src.lexically_relative("src/");
+                   obj.replace_extension(".o");
+                   return std::pair{std::move(src), obj};
+                 }) |
+                 std::ranges::to<std::vector>();
         })
+
+        .and_then([&](std::vector<compile::SourceObject> source_objects)
+                      -> std::expected<std::vector<compile::SourceObject>,
+                                       std::string> {
+          return p1689::generate(source_objects, compiler,
+                                 output_dir / "p1689.json")
+              .transform([&]() { return std::move(source_objects); });
+        })
+
+        .and_then([&](std::vector<compile::SourceObject> source_objects) {
+          return compile::compile(source_objects, compiler, manifest.timestamp);
+        })
+
         .and_then([&](std::vector<fs::path> objs) {
           switch (manifest.type) {
           case manifest::Manifest::Type::exec:
