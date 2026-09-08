@@ -19,7 +19,8 @@ namespace drum::builder_cmd::compile {
                    const compiler::Compiler &compiler) {
       std::array invocation{std::string("-c"), src.string(), std::string{"-o"},
                             obj.string()};
-      return process::run_process("clang++", invocation, compiler.args());
+      return process::run_process("clang++", invocation, compiler.args())
+          .transform([](auto &&) {});
     }
 
     bool object_is_stale(const fs::path &object,

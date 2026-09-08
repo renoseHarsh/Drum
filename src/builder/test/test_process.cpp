@@ -21,6 +21,7 @@ namespace drum::builder_cmd::process::test {
     const std::vector<std::string> args{"1", "=", "1"};
     const auto result = run_process("test", args);
     REQUIRE(result);
+    REQUIRE_FALSE(*result);
   }
 
   TEST_CASE("Failed command") {
@@ -30,4 +31,17 @@ namespace drum::builder_cmd::process::test {
     REQUIRE(result.error().empty());
   }
 
+  TEST_CASE("Capture stdout") {
+    const std::vector<std::string> args{"hello", "capture"};
+    const auto result = run_process("echo", {}, args, Stdout::capture);
+    REQUIRE(result);
+    REQUIRE(*result == "hello capture\n");
+  }
+
+  TEST_CASE("Failed command with capture") {
+    const std::vector<std::string> args{"1", "=", "2"};
+    const auto result = run_process("test", {}, args, Stdout::capture);
+    REQUIRE_FALSE(result);
+    REQUIRE(result.error().empty());
+  }
 } // namespace drum::builder_cmd::process::test

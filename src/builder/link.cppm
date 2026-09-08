@@ -20,7 +20,8 @@ namespace drum::builder_cmd::link {
       std::ranges::transform(objects, std::back_inserter(args),
                              [](const fs::path &p) { return p.string(); });
 
-      return process::run_process("clang++", invocation, args);
+      return process::run_process("clang++", invocation, args)
+          .transform([](auto &&) {});
     }
   } // namespace
 

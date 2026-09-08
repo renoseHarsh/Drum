@@ -4,16 +4,20 @@ module;
 #include <errno.h>
 #include <spawn.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 module builder_cmd:process;
 
 import std;
 
 namespace drum::builder_cmd::process {
-  std::expected<void, std::string>
+  enum class Stdout { inherit, capture };
+
+  std::expected<std::optional<std::string>, std::string>
   run_process(const std::string &executable,
               std::span<const std::string> invocation = {},
-              std::span<const std::string> args = {}) {
+              std::span<const std::string> args = {},
+              Stdout mode = Stdout::inherit) {
 
     std::vector<char *> argv{};
     argv.reserve(invocation.size() + args.size() + 2);
@@ -27,11 +31,101 @@ namespace drum::builder_cmd::process {
     argv.push_back(nullptr);
 
     char **envp = *_NSGetEnviron();
+
+    posix_spawn_file_actions_t actions;
+    posix_spawn_file_actions_t *actions_ptr = nullptr;
+
+    int pipe_fds[2];
+    if (mode == Stdout::capture) {
+      if (pipe(pipe_fds) == -1) [[unlikely]] {
+        return std::unexpected{
+            std::error_code{errno, std::generic_category()}.message()};
+      }
+
+      if (int err = posix_spawn_file_actions_init(&actions)) [[unlikely]] {
+        close(pipe_fds[0]);
+        close(pipe_fds[1]);
+
+        return std::unexpected{
+            std::error_code{err, std::generic_category()}.message()};
+      }
+
+      actions_ptr = &actions;
+
+      if (int err = posix_spawn_file_actions_adddup2(
+              &actions, pipe_fds[1], STDOUT_FILENO)) [[unlikely]] {
+        posix_spawn_file_actions_destroy(&actions);
+        close(pipe_fds[0]);
+        close(pipe_fds[1]);
+
+        return std::unexpected{
+            std::error_code{err, std::generic_category()}.message()};
+      }
+
+      if (const int err = posix_spawn_file_actions_addclose(
+              &actions, pipe_fds[0])) [[unlikely]] {
+
+        posix_spawn_file_actions_destroy(&actions);
+        close(pipe_fds[0]);
+        close(pipe_fds[1]);
+
+        return std::unexpected{
+            std::error_code{err, std::generic_category()}.message()};
+      }
+
+      if (const int err = posix_spawn_file_actions_addclose(
+              &actions, pipe_fds[1])) [[unlikely]] {
+
+        posix_spawn_file_actions_destroy(&actions);
+        close(pipe_fds[0]);
+        close(pipe_fds[1]);
+
+        return std::unexpected{
+            std::error_code{err, std::generic_category()}.message()};
+      }
+    }
+
     pid_t pid;
-    if (const int err =
-            posix_spawnp(&pid, argv[0], nullptr, nullptr, argv.data(), envp)) {
+
+    if (const int err = posix_spawnp(&pid, argv[0], actions_ptr, nullptr,
+                                     argv.data(), envp)) {
+      if (mode == Stdout::capture) {
+        posix_spawn_file_actions_destroy(&actions);
+        close(pipe_fds[0]);
+        close(pipe_fds[1]);
+      }
       return std::unexpected{
           std::error_code{err, std::generic_category()}.message()};
+    }
+
+    if (mode == Stdout::capture) {
+      posix_spawn_file_actions_destroy(&actions);
+      close(pipe_fds[1]);
+    }
+
+    std::string output{};
+    if (mode == Stdout::capture) {
+      char buffer[0x1000];
+
+      for (;;) {
+        const auto count = read(pipe_fds[0], buffer, sizeof(buffer));
+
+        if (count == -1) [[unlikely]] {
+          close(pipe_fds[0]);
+          return std::unexpected{
+              std::error_code{errno, std::generic_category()}.message()};
+        }
+
+        if (count == 0)
+          break;
+
+        if (count == EINTR)
+          continue;
+
+        output.append(buffer, static_cast<std::size_t>(count));
+      }
+
+      close(pipe_fds[0]);
     }
 
     int wstatus;
@@ -44,7 +138,11 @@ namespace drum::builder_cmd::process {
       if (WEXITSTATUS(wstatus)) {
         return std::unexpected{std::string{}};
       }
-      return {};
+
+      if (mode == Stdout::capture)
+        return output;
+
+      return std::nullopt;
     }
 
     return std::unexpected{"unexpected error"};
