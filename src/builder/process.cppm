@@ -13,21 +13,18 @@ import std;
 namespace drum::builder_cmd::process {
   enum class Stdout { inherit, capture };
 
+  template <std::ranges::input_range R>
   std::expected<std::optional<std::string>, std::string>
-  run_process(const std::string &executable,
-              std::span<const std::string> invocation = {},
-              std::span<const std::string> args = {},
+  run_process(const std::string &executable, const R &args,
               Stdout mode = Stdout::inherit) {
-
-    std::vector<char *> argv{};
-    argv.reserve(invocation.size() + args.size() + 2);
-
-    auto to_c_str = std::views::transform(
-        [](const std::string &str) { return const_cast<char *>(str.c_str()); });
+    std::vector<char *> argv;
 
     argv.push_back(const_cast<char *>(executable.c_str()));
-    argv.append_range(invocation | to_c_str);
-    argv.append_range(args | to_c_str);
+
+    std::ranges::transform(
+        args, std::back_inserter(argv),
+        [](const std::string &arg) { return const_cast<char *>(arg.c_str()); });
+
     argv.push_back(nullptr);
 
     char **envp = *_NSGetEnviron();

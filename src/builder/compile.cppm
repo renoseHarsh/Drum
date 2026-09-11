@@ -17,10 +17,16 @@ namespace drum::builder_cmd::compile {
     std::expected<void, std::string>
     compile_source(const fs::path &src, const fs::path &obj,
                    const compiler::Compiler &compiler) {
-      std::array invocation{std::string("-c"), src.string(), std::string{"-o"},
-                            obj.string()};
-      return process::run_process("clang++", invocation, compiler.args())
-          .transform([](auto &&) {});
+      auto source_args = std::array{std::string{"-c"}, src.string(),
+                                    std::string("-o"), obj.string()};
+
+      auto args =
+          std::array<std::span<const std::string>, 2>{
+              std::span{compiler.args()}, std::span{source_args}} |
+          std::views::join;
+
+      return process::run_process("clang++", args).transform([](const auto &) {
+      });
     }
 
     bool object_is_stale(const fs::path &object,
