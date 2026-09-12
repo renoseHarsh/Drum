@@ -12,6 +12,7 @@ namespace drum::builder_cmd::p1689 {
   using SourceObject = std::pair<fs::path, fs::path>;
 
   namespace {
+    [[nodiscard]]
     std::vector<std::string>
     generate_arguments(const compiler::Compiler &compiler,
                        const SourceObject &source_object) {
@@ -37,9 +38,10 @@ namespace drum::builder_cmd::p1689 {
   };
 
   [[nodiscard]]
-  std::expected<void, std::string>
+  std::expected<fs::path, std::string>
   generate(const std::vector<SourceObject> &source_objects,
-           const compiler::Compiler &compiler, fs::path output_path) {
+           const compiler::Compiler &compiler, const fs::path &output_dir) {
+    fs::path p1689_file{output_dir / "p1689.json"};
     std::vector<DatabaseEntry> database;
     database.reserve(source_objects.size());
 
@@ -54,13 +56,12 @@ namespace drum::builder_cmd::p1689 {
         });
 
     std::string buffer;
-    auto result =
-        glaze::write_file_json(database, output_path.string(), buffer);
+    auto result = glaze::write_file_json(database, p1689_file.string(), buffer);
 
     if (result) [[unlikely]] {
       buffer.clear();
       return std::unexpected{glaze::format_error(result, buffer)};
     }
-    return {};
+    return p1689_file;
   }
 } // namespace drum::builder_cmd::p1689

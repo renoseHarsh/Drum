@@ -19,14 +19,16 @@ namespace drum::builder_cmd::p1689::test {
     const std::vector<SourceObject> source_objects{};
     compiler::Compiler compiler{};
 
-    const auto result = generate(source_objects, compiler, "p1689.json");
+    const auto result = generate(source_objects, compiler, ".");
 
     REQUIRE(result);
 
+    const fs::path &p1689_file = *result;
     std::vector<DatabaseEntry> database{};
     std::string buffer{};
 
-    const auto ec = glaze::read_file_json(database, "p1689.json", buffer);
+    const auto ec =
+        glaze::read_file_json(database, p1689_file.string(), buffer);
 
     REQUIRE_FALSE(ec);
     REQUIRE(database.empty());
@@ -47,7 +49,7 @@ namespace drum::builder_cmd::p1689::test {
         .set_warnings(manifest.build.warnings)
         .set_warnings_as_errors(true);
 
-    const auto result = generate(source_objects, compiler, "p1689.json");
+    const auto result = generate(source_objects, compiler, ".");
 
     REQUIRE(result);
 
@@ -86,7 +88,7 @@ namespace drum::builder_cmd::p1689::test {
     compiler::Compiler compiler{};
 
     const auto result =
-        generate(source_objects, compiler, "nonexistent_directory/p1689.json");
+        generate(source_objects, compiler, "nonexistent_directory");
 
     REQUIRE_FALSE(result);
     REQUIRE_FALSE(result.error().empty());

@@ -75,7 +75,8 @@ namespace drum::builder_cmd {
                  std::views::transform([&](auto src) {
                    fs::path obj{output_dir};
                    obj /= src.lexically_relative("src/");
-                   obj.replace_extension(".o");
+                   obj.replace_extension(src.extension() == ".cpp" ? ".o"
+                                                                   : ".mod.o");
                    return std::pair{std::move(src), obj};
                  }) |
                  std::ranges::to<std::vector>();
@@ -84,9 +85,9 @@ namespace drum::builder_cmd {
         .and_then([&](std::vector<compile::SourceObject> source_objects)
                       -> std::expected<std::vector<compile::SourceObject>,
                                        std::string> {
-          return p1689::generate(source_objects, compiler,
-                                 output_dir / "p1689.json")
-              .transform([&]() { return std::move(source_objects); });
+          return p1689::generate(source_objects, compiler, output_dir)
+              .transform(
+                  [&](const fs::path &) { return std::move(source_objects); });
         })
 
         .and_then([&](std::vector<compile::SourceObject> source_objects) {
