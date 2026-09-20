@@ -15,54 +15,41 @@ namespace fs = std::filesystem;
 namespace drum::builder_cmd::discover::test {
   namespace {
 
-    void require_discover(const std::vector<fs::path> &paths) {
-      const auto result = discover();
-      REQUIRE(result);
-      const auto &src = *result;
-
-      auto cpp = paths | std::views::filter([](const fs::path &path) {
-                   return path.extension() == ".cpp";
-                 });
-      auto non_cpp = paths | std::views::filter([](const fs::path &path) {
-                       return path.extension() != ".cpp";
-                     });
-
-      REQUIRE(std::ranges::all_of(cpp, [&](const fs::path &p) {
-        return std::ranges::contains(src, p);
-      }));
-
-      REQUIRE(std::ranges::none_of(non_cpp, [&](const fs::path &p) {
-        return std::ranges::contains(src, p);
-      }));
-    }
-
-    void create_structure(const std::vector<fs::path> &paths) {
-      const test_util::TestEnvironment env{};
-
-      fs::create_directory("src");
-
+    void create_files(const std::vector<fs::path> &paths) {
       std::ranges::for_each(paths, [](const fs::path &path) {
         fs::create_directories(path.parent_path());
         std::ofstream{path};
       });
-
-      require_discover(paths);
     }
 
   } // namespace
 
-  TEST_CASE("Single cpp file") { create_structure({"src/main.cpp"}); }
+  TEST_CASE("Discovers cpp and cppm files, including nested") {
+    const test_util::TestEnvironment env{};
 
-  TEST_CASE("Nested cpp files") {
-    create_structure({"src/main.cpp", "src/utils/helper.cpp"});
+    const std::vector<fs::path> files{
+        "src/main.cpp",         "src/foo.cppm",
+        "src/utils/helper.cpp", "src/models/user.cppm"};
+    create_files(files);
+
+    const auto result = discover();
+    REQUIRE(result);
+    REQUIRE(std::ranges::is_permutation(*result, files));
   }
 
-  TEST_CASE("Ignores non-cpp files") {
-    create_structure({"src/main.cpp", "src/main.h", "src/config.txt"});
+  TEST_CASE("Ignores non-source files") {
+    const test_util::TestEnvironment env{};
+
+    create_files({"src/main.cpp", "src/main.h", "src/config.txt",
+                  "src/assets/data.bin"});
+
+    const auto result = discover();
+    REQUIRE(result);
+    REQUIRE(*result == std::vector<fs::path>{"src/main.cpp"});
   }
 
   TEST_CASE("Empty src directory") {
-    test_util::TestEnvironment env{};
+    const test_util::TestEnvironment env{};
 
     fs::create_directory("src");
     const auto result = discover();
