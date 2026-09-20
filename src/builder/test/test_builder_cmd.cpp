@@ -97,7 +97,7 @@ namespace drum::builder_cmd::test {
     const auto result =
         execute({}, {.name = "demo", .type = manifest::Manifest::Type::exec});
     REQUIRE(result);
-    REQUIRE(fs::exists("build/debug/main.o"));
-    REQUIRE(fs::exists("build/debug/core/util.o"));
+    REQUIRE(fs::exists("build/debug/main.cpp.o"));
+    REQUIRE(fs::exists("build/debug/core/util.cpp.o"));
   }
 } // namespace drum::builder_cmd::test

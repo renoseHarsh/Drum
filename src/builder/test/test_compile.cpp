@@ -23,8 +23,8 @@ namespace drum::builder_cmd::compile::test {
         now - std::chrono::seconds{10};
 
     const fs::path main_src{"main.cpp"};
-    const fs::path main_obj{"main.o"};
-    const fs::path main_dep{"main.d"};
+    const fs::path main_obj{"main.cpp.o"};
+    const fs::path main_dep{"main.cpp.d"};
 
     void setup() {
       test_util::write_file("main.cpp",
@@ -43,8 +43,8 @@ namespace drum::builder_cmd::compile::test {
   TEST_CASE("Compile failure propagates from the compiler") {
     const test_util::TestEnvironment env{};
 
-    const auto result =
-        compile({{"missing.cpp", "missing.o"}}, compiler, manifest_timestamp);
+    const auto result = compile({{"missing.cpp", "missing.cpp.o"}}, compiler,
+                                manifest_timestamp);
     REQUIRE_FALSE(result);
   }
 
@@ -62,11 +62,11 @@ namespace drum::builder_cmd::compile::test {
     test_util::write_file("bar.cpp", "void bar() {}\n");
 
     const auto result =
-        compile({{"bar.cpp", "foo/bar.o"}}, compiler, manifest_timestamp);
+        compile({{"bar.cpp", "foo/bar.cpp.o"}}, compiler, manifest_timestamp);
 
     REQUIRE(result);
-    REQUIRE(std::ranges::equal(*result, std::array{"foo/bar.o"}));
-    REQUIRE(fs::exists("foo/bar.o"));
+    REQUIRE(std::ranges::equal(*result, std::array{"foo/bar.cpp.o"}));
+    REQUIRE(fs::exists("foo/bar.cpp.o"));
   }
 
   TEST_CASE("Cache hit: unchanged inputs do not recompile") {
@@ -140,7 +140,7 @@ namespace drum::builder_cmd::compile::test {
     setup();
 
     const auto baseline = fs::last_write_time(main_obj);
-    test_util::write_file(main_dep, "wrong.o: src/main.cpp src/header.h");
+    test_util::write_file(main_dep, "wrong.cpp.o: src/main.cpp src/header.h");
 
     REQUIRE(compile({{main_src, main_obj}}, compiler, manifest_timestamp));
     REQUIRE((fs::last_write_time(main_obj) > baseline));
@@ -165,17 +165,17 @@ namespace drum::builder_cmd::compile::test {
     test_util::write_file(main_src, "int main() {}\n");
     test_util::write_file("utils.cpp", "void util() {}\n");
 
-    REQUIRE(compile({{main_src, main_obj}, {"utils.cpp", "utils.o"}}, compiler,
-                    manifest_timestamp));
+    REQUIRE(compile({{main_src, main_obj}, {"utils.cpp", "utils.cpp.o"}},
+                    compiler, manifest_timestamp));
 
     const auto main_baseline = fs::last_write_time(main_obj);
-    const auto util_baseline = fs::last_write_time("utils.o");
+    const auto util_baseline = fs::last_write_time("utils.cpp.o");
 
     fs::last_write_time("utils.cpp", future);
 
-    REQUIRE(compile({{main_src, main_obj}, {"utils.cpp", "utils.o"}}, compiler,
-                    manifest_timestamp));
+    REQUIRE(compile({{main_src, main_obj}, {"utils.cpp", "utils.cpp.o"}},
+                    compiler, manifest_timestamp));
     REQUIRE((fs::last_write_time(main_obj) == main_baseline));
-    REQUIRE((fs::last_write_time("utils.o") > util_baseline));
+    REQUIRE((fs::last_write_time("utils.cpp.o") > util_baseline));
   }
 } // namespace drum::builder_cmd::compile::test

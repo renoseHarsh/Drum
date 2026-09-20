@@ -75,8 +75,7 @@ namespace drum::builder_cmd {
                  std::views::transform([&](auto src) {
                    fs::path obj{output_dir};
                    obj /= src.lexically_relative("src/");
-                   obj.replace_extension(src.extension() == ".cpp" ? ".o"
-                                                                   : ".mod.o");
+                   obj.replace_extension(src.extension().string() + ".o");
                    return std::pair{std::move(src), obj};
                  }) |
                  std::ranges::to<std::vector>();
