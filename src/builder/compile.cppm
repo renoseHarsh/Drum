@@ -4,9 +4,9 @@ import std;
 
 import :compiler;
 import :depfile;
-import :process;
 import :log;
 
+import process;
 import manifest;
 
 namespace fs = std::filesystem;

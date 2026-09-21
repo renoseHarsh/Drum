@@ -6,11 +6,11 @@ module;
 #include <sys/wait.h>
 #include <unistd.h>
 
-module builder_cmd:process;
+export module process;
 
 import std;
 
-namespace drum::builder_cmd::process {
+export namespace drum::process {
   enum class Stdout { inherit, capture };
 
   template <std::ranges::input_range R>
@@ -144,4 +144,4 @@ namespace drum::builder_cmd::process {
 
     return std::unexpected{"unexpected error"};
   }
-} // namespace drum::builder_cmd::process
+} // namespace drum::process

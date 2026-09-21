@@ -6,7 +6,6 @@ drum_add_command(
   discover.cppm
   compile.cppm
   link.cppm
-  process.cppm
   depfile.cppm
   archive.cppm
   log.cppm
@@ -19,9 +18,9 @@ drum_add_command(
   manifest
   PRIVATE_LIBRARIES
   glaze
+  process
   TEST_MODULES
   test/test_discover.cpp
-  test/test_process.cpp
   test/test_compile.cpp
   test/test_link.cpp
   test/test_depfile.cpp

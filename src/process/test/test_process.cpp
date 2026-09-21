@@ -1,14 +1,10 @@
-module;
-
 #include <catch2/catch_test_macros.hpp>
-
-module builder_cmd:test_process;
 
 import std;
 
-import :process;
+import process;
 
-namespace drum::builder_cmd::process::test {
+namespace drum::process::test {
 
   TEST_CASE("Invalid command") {
     const auto result =
@@ -45,4 +41,4 @@ namespace drum::builder_cmd::process::test {
     REQUIRE_FALSE(result);
     REQUIRE(result.error().empty());
   }
-} // namespace drum::builder_cmd::process::test
+} // namespace drum::process::test

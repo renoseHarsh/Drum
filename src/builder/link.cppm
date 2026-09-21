@@ -2,9 +2,10 @@ module builder_cmd:link;
 
 import std;
 
-import :process;
 import :log;
 import :cache;
+
+import process;
 
 namespace fs = std::filesystem;
 
