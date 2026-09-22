@@ -2,12 +2,11 @@ module builder_cmd:compile;
 
 import std;
 
-import :compiler;
 import :depfile;
 import :log;
 
 import process;
-import manifest;
+import compiler_flags;
 
 namespace fs = std::filesystem;
 
@@ -16,13 +15,13 @@ namespace drum::builder_cmd::compile {
   namespace {
     std::expected<void, std::string>
     compile_source(const fs::path &src, const fs::path &obj,
-                   const compiler::Compiler &compiler) {
+                   const compiler_flags::Flags &flags) {
       auto source_args = std::array{std::string{"-c"}, src.string(),
                                     std::string("-o"), obj.string()};
 
       auto args =
-          std::array<std::span<const std::string>, 2>{
-              std::span{compiler.args()}, std::span{source_args}} |
+          std::array<std::span<const std::string>, 2>{std::span{flags.args()},
+                                                      std::span{source_args}} |
           std::views::join;
 
       return process::run_process("clang++", args).transform([](const auto &) {
@@ -61,7 +60,7 @@ namespace drum::builder_cmd::compile {
   using SourceObject = std::pair<fs::path, fs::path>;
   std::expected<std::vector<fs::path>, std::string>
   compile(std::vector<SourceObject> source_objects,
-          const compiler::Compiler &compiler,
+          const compiler_flags::Flags &flags,
           fs::file_time_type manifest_lastwrite) {
     std::vector<fs::path> objects{};
     objects.reserve(source_objects.size());
@@ -77,7 +76,7 @@ namespace drum::builder_cmd::compile {
             return std::unexpected{"Error in creating build directory"};
         }
 
-        if (auto result = compile_source(src, obj, compiler); !result)
+        if (auto result = compile_source(src, obj, flags); !result)
           return std::unexpected{std::move(result).error()};
 
       } else

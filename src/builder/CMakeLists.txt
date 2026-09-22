@@ -10,7 +10,6 @@ drum_add_command(
   archive.cppm
   log.cppm
   cache.cppm
-  compiler.cppm
   SOURCES
   builder_cmd.cpp
   PUBLIC_LIBRARIES
@@ -18,12 +17,14 @@ drum_add_command(
   PRIVATE_LIBRARIES
   glaze
   process
+  compiler_flags
   TEST_MODULES
   test/test_discover.cpp
   test/test_compile.cpp
   test/test_link.cpp
   test/test_depfile.cpp
   test/test_archive.cpp
-  test/test_compiler.cpp
   TEST_SOURCES
   test/test_builder_cmd.cpp)
+
+add_subdirectory(compiler_flags)

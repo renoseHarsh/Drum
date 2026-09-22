@@ -6,10 +6,11 @@ module builder_cmd:test_link;
 
 import std;
 
-import :compile;
 import :link;
+import :compile;
 
 import test_util;
+import compiler_flags;
 
 namespace fs = std::filesystem;
 
@@ -21,12 +22,12 @@ namespace drum::builder_cmd::link::test {
     const fs::path main_bin{"main"};
 
     std::vector<fs::path> build_objects() {
-      const compiler::Compiler compiler{};
+      const compiler_flags::Flags flags{};
       const fs::file_time_type manifest_timestamp = now;
 
       test_util::write_file("main.cpp", "int main() {}");
-      const auto objects = compile::compile({{"main.cpp", "main.o"}}, compiler,
-                                            manifest_timestamp);
+      const auto objects =
+          compile::compile({{"main.cpp", "main.o"}}, flags, manifest_timestamp);
       REQUIRE(objects);
       return *objects;
     }

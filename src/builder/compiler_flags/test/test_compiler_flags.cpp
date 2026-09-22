@@ -1,38 +1,34 @@
-module;
-
 #include <catch2/catch_test_macros.hpp>
-
-module builder_cmd:test_compiler;
 
 import std;
 
-import :compiler;
+import compiler_flags;
 
 import test_util;
 
 using namespace std::literals::string_view_literals;
 
-namespace drum::builder_cmd::compiler::test {
+namespace drum::compiler_flags::test {
   namespace {
-    void require_compiler_args(const Compiler &compiler,
+    void require_compiler_args(const Flags &flags,
                                std::span<const std::string_view> expected) {
-      const auto args = compiler.args();
+      const auto args = flags.args();
 
       REQUIRE(std::ranges::equal(args | std::views::drop(1), expected));
     }
   } // namespace
 
   TEST_CASE("Dependency generation flag is emitted") {
-    Compiler compiler{};
+    Flags flags{};
 
-    REQUIRE(std::ranges::equal(compiler.args(), std::array{"-MMD"}));
+    REQUIRE(std::ranges::equal(flags.args(), std::array{"-MMD"}));
   }
 
   TEST_CASE("Include directory appears in args") {
-    Compiler compiler{};
+    Flags flags{};
 
-    compiler.add_include_directory("include");
-    require_compiler_args(compiler, std::array{"-Iinclude"sv});
+    flags.add_include_directory("include");
+    require_compiler_args(flags, std::array{"-Iinclude"sv});
   }
 
   TEST_CASE("Standard flag is emitted") {
@@ -45,10 +41,10 @@ namespace drum::builder_cmd::compiler::test {
     };
 
     for (const auto &[standard, arg] : cases) {
-      Compiler compiler{};
+      Flags flags{};
 
-      compiler.set_standard(standard);
-      require_compiler_args(compiler, std::array{arg});
+      flags.set_standard(standard);
+      require_compiler_args(flags, std::array{arg});
     }
   }
 
@@ -64,55 +60,55 @@ namespace drum::builder_cmd::compiler::test {
     };
 
     for (const auto &[warnings, expected] : cases) {
-      Compiler compiler{};
+      Flags flags{};
 
-      compiler.set_warnings(warnings);
-      require_compiler_args(compiler, expected);
+      flags.set_warnings(warnings);
+      require_compiler_args(flags, expected);
     }
   }
 
   TEST_CASE("Warnings as errors flag is emitted") {
-    Compiler compiler{};
+    Flags flags{};
 
-    compiler.set_warnings_as_errors(true);
-    require_compiler_args(compiler, std::array{"-Werror"sv});
+    flags.set_warnings_as_errors(true);
+    require_compiler_args(flags, std::array{"-Werror"sv});
   }
 
   TEST_CASE("Extra flags appear in args") {
-    Compiler compiler{};
+    Flags flags{};
 
-    const std::vector<std::string_view> flags{
+    const std::vector<std::string_view> expected{
         "-march=native",
         "-fno-exceptions",
         "-fno-rtti",
     };
-    auto string_flags = flags |
+    auto string_flags = expected |
                         std::views::transform([](std::string_view flag) {
                           return std::string(flag);
                         }) |
                         std::ranges::to<std::vector<std::string>>();
 
-    compiler.set_extra_flags(string_flags);
-    require_compiler_args(compiler, flags);
+    flags.add_extra_flags(string_flags);
+    require_compiler_args(flags, expected);
   }
 
   TEST_CASE("Compiler flags are emitted") {
     using enum manifest::Manifest::Build::Standard;
     using enum manifest::Manifest::Build::Warnings;
 
-    Compiler compiler{};
+    Flags flags{};
 
-    compiler.set_standard(cpp23)
+    flags.set_standard(cpp23)
         .set_warnings(pedantic)
         .set_warnings_as_errors(true)
         .add_include_directory("include");
 
-    compiler.set_extra_flags({
+    flags.add_extra_flags({
         "-march=native",
         "-fno-rtti",
     });
 
-    require_compiler_args(compiler,
+    require_compiler_args(flags,
                           std::array{"-std=c++23"sv, "-Wall"sv, "-Wextra"sv,
                                      "-Wpedantic"sv, "-Werror"sv, "-Iinclude"sv,
                                      "-march=native"sv, "-fno-rtti"sv});
@@ -129,10 +125,10 @@ namespace drum::builder_cmd::compiler::test {
     };
 
     for (const auto &[level, expected] : cases) {
-      Compiler compiler{};
+      Flags flags{};
 
-      compiler.set_optimization(level);
-      require_compiler_args(compiler, std::array{expected});
+      flags.set_optimization(level);
+      require_compiler_args(flags, std::array{expected});
     }
   }
 
@@ -143,10 +139,10 @@ namespace drum::builder_cmd::compiler::test {
     };
 
     for (const auto &[debug, expected] : cases) {
-      Compiler compiler{};
+      Flags flags{};
 
-      compiler.set_debug(debug);
-      require_compiler_args(compiler, std::array{expected});
+      flags.set_debug(debug);
+      require_compiler_args(flags, std::array{expected});
     }
   }
-} // namespace drum::builder_cmd::compiler::test
+} // namespace drum::compiler_flags::test

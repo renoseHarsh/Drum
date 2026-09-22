@@ -4,11 +4,11 @@ import std;
 
 import :archive;
 import :compile;
-import :compiler;
 import :discover;
 import :link;
 
 import manifest;
+import compiler_flags;
 
 namespace fs = std::filesystem;
 
@@ -29,7 +29,7 @@ namespace drum::builder_cmd {
 
   std::expected<void, std::string> execute(const BuildArgs &args,
                                            const manifest::Manifest &manifest) {
-    compiler::Compiler compiler{};
+    compiler_flags::Flags flags{};
 
     switch (manifest.type) {
     case manifest::Manifest::Type::exec:
@@ -41,18 +41,18 @@ namespace drum::builder_cmd {
       if (!is_valid_lib_dir()) {
         return std::unexpected{"Invalid executable package layout"};
       }
-      compiler.add_include_directory("include");
+      flags.add_include_directory("include");
       break;
     }
 
     const auto &build = manifest.build;
-    compiler.set_standard(build.standard)
+    flags.set_standard(build.standard)
         .set_warnings(build.warnings)
         .set_warnings_as_errors(build.warnings_as_errors)
-        .set_extra_flags(build.extra_flags);
+        .add_extra_flags(build.extra_flags);
 
     const auto &profile = args.release ? manifest.release : manifest.debug;
-    compiler.set_optimization(profile.optimization).set_debug(profile.debug);
+    flags.set_optimization(profile.optimization).set_debug(profile.debug);
     const fs::path profile_dir{args.release ? "release" : "debug"};
     const fs::path output_dir{"build" / profile_dir};
     fs::path output_path{output_dir / manifest.name};
@@ -81,7 +81,7 @@ namespace drum::builder_cmd {
         })
 
         .and_then([&](std::vector<compile::SourceObject> source_objects) {
-          return compile::compile(source_objects, compiler, manifest.timestamp);
+          return compile::compile(source_objects, flags, manifest.timestamp);
         })
 
         .and_then([&](std::vector<fs::path> objs) {

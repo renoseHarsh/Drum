@@ -1,21 +1,21 @@
-module builder_cmd:compiler;
+export module compiler_flags;
 
 import std;
 
-import manifest;
+export import manifest;
 
 using Manifest = drum::manifest::Manifest;
 
-namespace drum::builder_cmd::compiler {
-  class Compiler {
+export namespace drum::compiler_flags {
+  class Flags {
   public:
-    Compiler &add_include_directory(const std::filesystem::path &directory) {
+    Flags &add_include_directory(const std::filesystem::path &directory) {
       args_.push_back(std::format("-I{}", directory.string()));
 
       return *this;
     }
 
-    Compiler &set_standard(Manifest::Build::Standard standard) {
+    Flags &set_standard(Manifest::Build::Standard standard) {
       using enum Manifest::Build::Standard;
 
       constexpr std::array standards{
@@ -29,7 +29,7 @@ namespace drum::builder_cmd::compiler {
       return *this;
     }
 
-    Compiler &set_warnings(Manifest::Build::Warnings warnings) {
+    Flags &set_warnings(Manifest::Build::Warnings warnings) {
       using enum Manifest::Build::Warnings;
 
       switch (warnings) {
@@ -55,20 +55,20 @@ namespace drum::builder_cmd::compiler {
       return *this;
     }
 
-    Compiler &set_warnings_as_errors(bool enabled) {
+    Flags &set_warnings_as_errors(bool enabled) {
       if (enabled)
         args_.push_back("-Werror");
 
       return *this;
     }
 
-    Compiler &set_extra_flags(std::vector<std::string> flags) {
+    Flags &add_extra_flags(std::vector<std::string> flags) {
       args_.append_range(flags | std::views::as_rvalue);
 
       return *this;
     }
 
-    Compiler &set_optimization(Manifest::Profile::Optimization optimization) {
+    Flags &set_optimization(Manifest::Profile::Optimization optimization) {
       using enum Manifest::Profile::Optimization;
 
       constexpr std::array optimizations{
@@ -84,7 +84,7 @@ namespace drum::builder_cmd::compiler {
       return *this;
     }
 
-    Compiler &set_debug(bool debug) {
+    Flags &set_debug(bool debug) {
       if (debug)
         args_.push_back("-g");
       else
@@ -98,4 +98,4 @@ namespace drum::builder_cmd::compiler {
   private:
     std::vector<std::string> args_{"-MMD"};
   };
-} // namespace drum::builder_cmd::compiler
+} // namespace drum::compiler_flags

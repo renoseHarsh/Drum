@@ -1,0 +1,9 @@
+drum_add_command(
+  NAME
+  compiler_flags
+  MODULES
+  compiler_flags.cppm
+  PUBLIC_LIBRARIES
+  manifest
+  TEST_SOURCES
+  test/test_compiler_flags.cpp)

@@ -7,9 +7,9 @@ module builder_cmd:test_compile;
 import std;
 
 import :compile;
-import :compiler;
 
 import test_util;
+import compiler_flags;
 
 namespace fs = std::filesystem;
 
@@ -18,7 +18,7 @@ namespace drum::builder_cmd::compile::test {
     using clock = fs::file_time_type::clock;
     const auto now = clock::now();
 
-    const compiler::Compiler compiler{};
+    const compiler_flags::Flags flags{};
     const fs::file_time_type manifest_timestamp =
         now - std::chrono::seconds{10};
 
@@ -32,7 +32,7 @@ namespace drum::builder_cmd::compile::test {
       test_util::write_file("header.h", "int x;\n");
 
       const auto result =
-          compile({{main_src, main_obj}}, compiler, manifest_timestamp);
+          compile({{main_src, main_obj}}, flags, manifest_timestamp);
       REQUIRE(result);
     }
 
@@ -43,8 +43,8 @@ namespace drum::builder_cmd::compile::test {
   TEST_CASE("Compile failure propagates from the compiler") {
     const test_util::TestEnvironment env{};
 
-    const auto result = compile({{"missing.cpp", "missing.cpp.o"}}, compiler,
-                                manifest_timestamp);
+    const auto result =
+        compile({{"missing.cpp", "missing.cpp.o"}}, flags, manifest_timestamp);
     REQUIRE_FALSE(result);
   }
 
@@ -62,7 +62,7 @@ namespace drum::builder_cmd::compile::test {
     test_util::write_file("bar.cpp", "void bar() {}\n");
 
     const auto result =
-        compile({{"bar.cpp", "foo/bar.cpp.o"}}, compiler, manifest_timestamp);
+        compile({{"bar.cpp", "foo/bar.cpp.o"}}, flags, manifest_timestamp);
 
     REQUIRE(result);
     REQUIRE(std::ranges::equal(*result, std::array{"foo/bar.cpp.o"}));
@@ -75,7 +75,7 @@ namespace drum::builder_cmd::compile::test {
 
     const auto baseline = fs::last_write_time(main_obj);
 
-    REQUIRE(compile({{main_src, main_obj}}, compiler, manifest_timestamp));
+    REQUIRE(compile({{main_src, main_obj}}, flags, manifest_timestamp));
     REQUIRE((fs::last_write_time(main_obj) == baseline));
   }
 
@@ -85,7 +85,7 @@ namespace drum::builder_cmd::compile::test {
 
     const auto baseline = fs::last_write_time(main_obj);
 
-    REQUIRE(compile({{main_src, main_obj}}, compiler, future));
+    REQUIRE(compile({{main_src, main_obj}}, flags, future));
     REQUIRE((fs::last_write_time(main_obj) > baseline));
   }
 
@@ -96,7 +96,7 @@ namespace drum::builder_cmd::compile::test {
     const auto baseline = fs::last_write_time(main_obj);
     fs::last_write_time(main_src, future);
 
-    REQUIRE(compile({{main_src, main_obj}}, compiler, manifest_timestamp));
+    REQUIRE(compile({{main_src, main_obj}}, flags, manifest_timestamp));
     REQUIRE((fs::last_write_time(main_obj) > baseline));
   }
 
@@ -107,7 +107,7 @@ namespace drum::builder_cmd::compile::test {
     const auto baseline = fs::last_write_time(main_obj);
     fs::last_write_time("header.h", future);
 
-    REQUIRE(compile({{main_src, main_obj}}, compiler, manifest_timestamp));
+    REQUIRE(compile({{main_src, main_obj}}, flags, manifest_timestamp));
     REQUIRE((fs::last_write_time(main_obj) > baseline));
   }
 
@@ -119,7 +119,7 @@ namespace drum::builder_cmd::compile::test {
     const auto baseline = fs::last_write_time(main_obj);
     fs::last_write_time("unrelated.h", future);
 
-    REQUIRE(compile({{main_src, main_obj}}, compiler, manifest_timestamp));
+    REQUIRE(compile({{main_src, main_obj}}, flags, manifest_timestamp));
     REQUIRE((fs::last_write_time(main_obj) == baseline));
   }
 
@@ -130,7 +130,7 @@ namespace drum::builder_cmd::compile::test {
     const auto baseline = fs::last_write_time(main_obj);
     fs::remove(main_dep);
 
-    REQUIRE(compile({{main_src, main_obj}}, compiler, manifest_timestamp));
+    REQUIRE(compile({{main_src, main_obj}}, flags, manifest_timestamp));
     REQUIRE((fs::last_write_time(main_obj) > baseline));
     REQUIRE(fs::exists(main_dep));
   }
@@ -142,7 +142,7 @@ namespace drum::builder_cmd::compile::test {
     const auto baseline = fs::last_write_time(main_obj);
     test_util::write_file(main_dep, "wrong.cpp.o: src/main.cpp src/header.h");
 
-    REQUIRE(compile({{main_src, main_obj}}, compiler, manifest_timestamp));
+    REQUIRE(compile({{main_src, main_obj}}, flags, manifest_timestamp));
     REQUIRE((fs::last_write_time(main_obj) > baseline));
     REQUIRE(fs::exists(main_dep));
   }
@@ -156,7 +156,7 @@ namespace drum::builder_cmd::compile::test {
     fs::last_write_time(main_src, past);
     fs::remove("header.h");
 
-    REQUIRE(compile({{main_src, main_obj}}, compiler, manifest_timestamp));
+    REQUIRE(compile({{main_src, main_obj}}, flags, manifest_timestamp));
     REQUIRE((fs::last_write_time(main_obj) > baseline));
   }
 
@@ -165,16 +165,16 @@ namespace drum::builder_cmd::compile::test {
     test_util::write_file(main_src, "int main() {}\n");
     test_util::write_file("utils.cpp", "void util() {}\n");
 
-    REQUIRE(compile({{main_src, main_obj}, {"utils.cpp", "utils.cpp.o"}},
-                    compiler, manifest_timestamp));
+    REQUIRE(compile({{main_src, main_obj}, {"utils.cpp", "utils.cpp.o"}}, flags,
+                    manifest_timestamp));
 
     const auto main_baseline = fs::last_write_time(main_obj);
     const auto util_baseline = fs::last_write_time("utils.cpp.o");
 
     fs::last_write_time("utils.cpp", future);
 
-    REQUIRE(compile({{main_src, main_obj}, {"utils.cpp", "utils.cpp.o"}},
-                    compiler, manifest_timestamp));
+    REQUIRE(compile({{main_src, main_obj}, {"utils.cpp", "utils.cpp.o"}}, flags,
+                    manifest_timestamp));
     REQUIRE((fs::last_write_time(main_obj) == main_baseline));
     REQUIRE((fs::last_write_time("utils.cpp.o") > util_baseline));
   }

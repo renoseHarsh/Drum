@@ -10,6 +10,7 @@ import :archive;
 import :compile;
 
 import test_util;
+import compiler_flags;
 
 namespace fs = std::filesystem;
 
@@ -21,13 +22,13 @@ namespace drum::builder_cmd::archive::test {
     const fs::path math_lib{"math.a"};
 
     std::vector<fs::path> build_objects() {
-      const compiler::Compiler compiler{};
+      const compiler_flags::Flags flags{};
       const fs::file_time_type manifest_timestamp = now;
 
       test_util::write_file("math.cpp",
                             "int add(int a, int b) { return a + b; }");
-      const auto objects = compile::compile({{"math.cpp", "math.o"}}, compiler,
-                                            manifest_timestamp);
+      const auto objects =
+          compile::compile({{"math.cpp", "math.o"}}, flags, manifest_timestamp);
       REQUIRE(objects);
       return *objects;
     }
