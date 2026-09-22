@@ -11,7 +11,6 @@ drum_add_command(
   log.cppm
   cache.cppm
   compiler.cppm
-  p1689.cppm
   SOURCES
   builder_cmd.cpp
   PUBLIC_LIBRARIES
@@ -26,6 +25,5 @@ drum_add_command(
   test/test_depfile.cpp
   test/test_archive.cpp
   test/test_compiler.cpp
-  test/test_p1689.cpp
   TEST_SOURCES
   test/test_builder_cmd.cpp)

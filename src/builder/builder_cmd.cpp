@@ -7,7 +7,6 @@ import :compile;
 import :compiler;
 import :discover;
 import :link;
-import :p1689;
 
 import manifest;
 
@@ -79,14 +78,6 @@ namespace drum::builder_cmd {
                    return std::pair{std::move(src), obj};
                  }) |
                  std::ranges::to<std::vector>();
-        })
-
-        .and_then([&](std::vector<compile::SourceObject> source_objects)
-                      -> std::expected<std::vector<compile::SourceObject>,
-                                       std::string> {
-          return p1689::generate(source_objects, compiler, output_dir)
-              .transform(
-                  [&](const fs::path &) { return std::move(source_objects); });
         })
 
         .and_then([&](std::vector<compile::SourceObject> source_objects) {
