@@ -17,6 +17,7 @@ drum_add_command(
   PRIVATE_LIBRARIES
   glaze
   process
+  mod_deps
   compiler_flags
   TEST_MODULES
   test/test_discover.cpp
@@ -28,3 +29,4 @@ drum_add_command(
   test/test_builder_cmd.cpp)
 
 add_subdirectory(compiler_flags)
+add_subdirectory(mod_deps)

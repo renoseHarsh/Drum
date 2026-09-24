@@ -1,0 +1,14 @@
+drum_add_command(
+  NAME
+  mod_deps
+  MODULES
+  mod_deps.cppm
+  comp_db.cppm
+  SOURCES
+  mod_deps.cpp
+  PUBLIC_LIBRARIES
+  compiler_flags
+  PRIVATE_LIBRARIES
+  glaze
+  TEST_MODULES
+  test/test_comp_db.cpp)
