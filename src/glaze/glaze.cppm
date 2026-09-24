@@ -4,8 +4,11 @@ module;
 
 export module glaze;
 
+export import :p1689;
+
 export namespace drum::glaze {
   using glz::format_error;
   using glz::read_file_json;
+  using glz::read_json;
   using glz::write_file_json;
 } // namespace drum::glaze
