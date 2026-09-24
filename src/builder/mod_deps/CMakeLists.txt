@@ -4,11 +4,14 @@ drum_add_command(
   MODULES
   mod_deps.cppm
   comp_db.cppm
+  scan_deps.cppm
   SOURCES
   mod_deps.cpp
   PUBLIC_LIBRARIES
   compiler_flags
   PRIVATE_LIBRARIES
   glaze
+  process
   TEST_MODULES
-  test/test_comp_db.cpp)
+  test/test_comp_db.cpp
+  test/test_scan_deps.cpp)
