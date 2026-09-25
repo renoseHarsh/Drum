@@ -4,6 +4,7 @@ import std;
 
 import :comp_db;
 import :scan_deps;
+import :units;
 
 import compiler_flags;
 
@@ -21,6 +22,9 @@ namespace drum::builder_cmd::mod_deps {
         })
         .and_then([](std::string json_string) {
           return scan_deps::parse(json_string);
+        })
+        .and_then([&](glaze::p1689_types::DependencyInfo info) {
+          return units::collect_translation_units(info, source_objects);
         })
         .and_then([](auto) -> std::expected<void, std::string> { return {}; });
   }
