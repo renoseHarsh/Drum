@@ -9,8 +9,8 @@ namespace drum::builder_cmd::mod_deps::node {
   struct Node {
     units::TranslationUnit unit{};
 
-    std::vector<const Node *> dependencies{};
-    std::vector<const Node *> dependents{};
+    std::vector<Node *> dependencies{};
+    std::vector<Node *> dependents{};
   };
 
   [[nodiscard]]
