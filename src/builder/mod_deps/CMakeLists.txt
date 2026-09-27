@@ -6,6 +6,7 @@ drum_add_command(
   comp_db.cppm
   scan_deps.cppm
   units.cppm
+  node.cppm
   SOURCES
   mod_deps.cpp
   PUBLIC_LIBRARIES
@@ -16,4 +17,5 @@ drum_add_command(
   TEST_MODULES
   test/test_comp_db.cpp
   test/test_scan_deps.cpp
-  test/test_units.cpp)
+  test/test_units.cpp
+  test/test_node.cpp)
