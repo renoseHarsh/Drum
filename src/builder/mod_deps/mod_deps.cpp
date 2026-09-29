@@ -7,6 +7,7 @@ import :scan_deps;
 import :units;
 import :node;
 import :topo_sort;
+import :flatten;
 
 import compiler_flags;
 
@@ -42,6 +43,10 @@ namespace drum::builder_cmd::mod_deps {
             return std::unexpected{std::move(result.error())};
 
           return ScanResult{std::move(nodes), std::move(*result)};
+        })
+        .transform([](ScanResult result) {
+          flatten::flatten_transitive(result.sorted);
+          return result;
         })
         .and_then([](auto) -> std::expected<void, std::string> { return {}; });
   }

@@ -8,6 +8,7 @@ drum_add_command(
   units.cppm
   node.cppm
   topo_sort.cppm
+  flatten.cppm
   SOURCES
   mod_deps.cpp
   PUBLIC_LIBRARIES
@@ -20,4 +21,5 @@ drum_add_command(
   test/test_scan_deps.cpp
   test/test_units.cpp
   test/test_node.cpp
-  test/test_topo_sort.cpp)
+  test/test_topo_sort.cpp
+  test/test_flatten.cpp)

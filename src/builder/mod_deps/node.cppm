@@ -11,6 +11,7 @@ namespace drum::builder_cmd::mod_deps::node {
 
     std::vector<Node *> dependencies{};
     std::vector<Node *> dependents{};
+    std::set<Node *> transitive_deps{};
   };
 
   [[nodiscard]]
