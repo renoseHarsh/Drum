@@ -2,7 +2,7 @@ module;
 
 #include <catch2/catch_test_macros.hpp>
 
-module mod_deps:test_comp_db;
+module module_deps:test_comp_db;
 
 import std;
 
@@ -10,17 +10,18 @@ import :comp_db;
 
 import test_util;
 import compiler_flags;
+import compile_unit;
 import glaze;
 
-namespace drum::builder_cmd::mod_deps::comp_db::test {
+namespace drum::builder_cmd::module_deps::comp_db::test {
 
   TEST_CASE("Creates empty database") {
     test_util::TestEnvironment env{};
 
-    const std::vector<SourceObject> source_objects{};
+    const std::vector<compile_unit::TranslationUnit> units{};
     compiler_flags::Flags flags{};
 
-    const auto result = generate_compile_database(source_objects, flags, ".");
+    const auto result = generate_compile_database(units, flags, ".");
 
     REQUIRE(result);
 
@@ -38,10 +39,10 @@ namespace drum::builder_cmd::mod_deps::comp_db::test {
   TEST_CASE("Creates database entries") {
     test_util::TestEnvironment env{};
 
-    std::vector<SourceObject> source_objects{
-        {"main.cppm", "main.o"},
-        {"foo.cpp", "foo.o"},
-        {"bar.cppm", "bar.o"},
+    std::vector<compile_unit::TranslationUnit> units{
+        {"main.cppm", "main.cppm.o"},
+        {"foo.cpp", "foo.cpp.o"},
+        {"bar.cppm", "bar.cppm.o"},
     };
 
     compiler_flags::Flags flags{};
@@ -50,7 +51,7 @@ namespace drum::builder_cmd::mod_deps::comp_db::test {
         .set_warnings(manifest.build.warnings)
         .set_warnings_as_errors(true);
 
-    const auto result = generate_compile_database(source_objects, flags, ".");
+    const auto result = generate_compile_database(units, flags, ".");
 
     REQUIRE(result);
 
@@ -61,22 +62,20 @@ namespace drum::builder_cmd::mod_deps::comp_db::test {
         database, "scan_deps_compile_commands.json", buffer);
 
     REQUIRE_FALSE(ec);
-    REQUIRE(database.size() == source_objects.size());
+    REQUIRE(database.size() == units.size());
 
-    for (const auto &[source_object, entry] :
-         std::views::zip(source_objects, database)) {
-      const auto &[source, object] = source_object;
+    for (const auto &[unit, entry] : std::views::zip(units, database)) {
 
       REQUIRE(entry.directory == ".");
-      REQUIRE(entry.file == source);
-      REQUIRE(entry.output == object);
+      REQUIRE(entry.file == unit.source);
+      REQUIRE(entry.output == unit.object);
 
       REQUIRE(!std::ranges::search(entry.arguments, flags.args()).empty());
 
       REQUIRE(!std::ranges::search(
                    entry.arguments,
-                   std::array<std::string, 4>{"-c", source.string(), "-o",
-                                              object.string()})
+                   std::array<std::string, 4>{"-c", unit.source.string(), "-o",
+                                              unit.object.string()})
                    .empty());
     }
   }
@@ -84,16 +83,16 @@ namespace drum::builder_cmd::mod_deps::comp_db::test {
   TEST_CASE("Returns error when database cannot be written") {
     test_util::TestEnvironment env{};
 
-    const std::vector<SourceObject> source_objects{
+    const std::vector<compile_unit::TranslationUnit> units{
         {"main.cppm", "main.o"},
     };
     compiler_flags::Flags flags{};
 
-    const auto result = generate_compile_database(source_objects, flags,
-                                                  "nonexistent_directory");
+    const auto result =
+        generate_compile_database(units, flags, "nonexistent_directory");
 
     REQUIRE_FALSE(result);
     REQUIRE_FALSE(result.error().empty());
   }
 
-} // namespace drum::builder_cmd::mod_deps::comp_db::test
+} // namespace drum::builder_cmd::module_deps::comp_db::test

@@ -1,10 +1,10 @@
-module mod_deps:topo_sort;
+module module_deps:topo_sort;
 
 import std;
 
 import :node;
 
-namespace drum::builder_cmd::mod_deps::topo_sort {
+namespace drum::builder_cmd::module_deps::topo_sort {
 
   namespace {
     enum class State { UNVISITED, VISITING, VISITED };
@@ -60,4 +60,4 @@ namespace drum::builder_cmd::mod_deps::topo_sort {
     std::ranges::reverse(stack);
     return stack;
   };
-} // namespace drum::builder_cmd::mod_deps::topo_sort
+} // namespace drum::builder_cmd::module_deps::topo_sort
