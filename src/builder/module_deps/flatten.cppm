@@ -1,10 +1,10 @@
-module mod_deps:flatten;
+module module_deps:flatten;
 
 import std;
 
 import :node;
 
-namespace drum::builder_cmd::mod_deps::flatten {
+namespace drum::builder_cmd::module_deps::flatten {
   void flatten_transitive(std::vector<node::Node *> nodes) {
     for (auto *node : nodes) {
       for (auto *dep : node->dependencies) {
@@ -13,4 +13,4 @@ namespace drum::builder_cmd::mod_deps::flatten {
       }
     }
   }
-} // namespace drum::builder_cmd::mod_deps::flatten
+} // namespace drum::builder_cmd::module_deps::flatten

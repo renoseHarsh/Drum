@@ -1,4 +1,4 @@
-module mod_deps:scan_deps;
+module module_deps:scan_deps;
 
 import std;
 
@@ -7,7 +7,7 @@ import glaze;
 
 namespace fs = std::filesystem;
 
-namespace drum::builder_cmd::mod_deps::scan_deps {
+namespace drum::builder_cmd::module_deps::scan_deps {
 
   std::expected<std::string, std::string> scan_deps(fs::path comp_db_file) {
     return process::run_process("clang-scan-deps",
@@ -36,4 +36,4 @@ namespace drum::builder_cmd::mod_deps::scan_deps {
     return info;
   }
 
-} // namespace drum::builder_cmd::mod_deps::scan_deps
+} // namespace drum::builder_cmd::module_deps::scan_deps

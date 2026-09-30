@@ -9,7 +9,7 @@ import :link;
 
 import manifest;
 import compiler_flags;
-import mod_deps;
+import module_deps;
 
 namespace fs = std::filesystem;
 

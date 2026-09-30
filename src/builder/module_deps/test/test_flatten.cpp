@@ -2,14 +2,14 @@ module;
 
 #include <catch2/catch_test_macros.hpp>
 
-module mod_deps:test_flatten;
+module module_deps:test_flatten;
 
 import std;
 
 import :flatten;
 import :node;
 
-namespace drum::builder_cmd::mod_deps::flatten::test {
+namespace drum::builder_cmd::module_deps::flatten::test {
 
   namespace {
 
@@ -101,4 +101,4 @@ namespace drum::builder_cmd::mod_deps::flatten::test {
     REQUIRE(!std::ranges::contains(f.transitive_deps, &d));
   }
 
-} // namespace drum::builder_cmd::mod_deps::flatten::test
+} // namespace drum::builder_cmd::module_deps::flatten::test

@@ -1,25 +1,24 @@
 drum_add_command(
   NAME
-  mod_deps
+  module_deps
   MODULES
-  mod_deps.cppm
+  module_deps.cppm
   comp_db.cppm
   scan_deps.cppm
-  units.cppm
   node.cppm
   topo_sort.cppm
   flatten.cppm
   SOURCES
-  mod_deps.cpp
+  module_deps.cpp
   PUBLIC_LIBRARIES
   compiler_flags
   PRIVATE_LIBRARIES
   glaze
   process
+  compile_unit
   TEST_MODULES
   test/test_comp_db.cpp
   test/test_scan_deps.cpp
-  test/test_units.cpp
   test/test_node.cpp
   test/test_topo_sort.cpp
   test/test_flatten.cpp)

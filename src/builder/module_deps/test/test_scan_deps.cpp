@@ -2,7 +2,7 @@ module;
 
 #include <catch2/catch_test_macros.hpp>
 
-module mod_deps:test_scan_deps;
+module module_deps:test_scan_deps;
 
 import std;
 
@@ -11,7 +11,7 @@ import :scan_deps;
 import glaze;
 import test_util;
 
-namespace drum::builder_cmd::mod_deps::scan_deps::test {
+namespace drum::builder_cmd::module_deps::scan_deps::test {
 
   TEST_CASE("Runs clang-scan-deps and captures P1689 output") {
     test_util::TestEnvironment env{};
@@ -90,4 +90,4 @@ namespace drum::builder_cmd::mod_deps::scan_deps::test {
     REQUIRE_FALSE(result.error().empty());
   }
 
-} // namespace drum::builder_cmd::mod_deps::scan_deps::test
+} // namespace drum::builder_cmd::module_deps::scan_deps::test

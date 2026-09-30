@@ -2,14 +2,14 @@ module;
 
 #include <catch2/catch_test_macros.hpp>
 
-module mod_deps:test_topo_sort;
+module module_deps:test_topo_sort;
 
 import std;
 
 import :topo_sort;
 import :node;
 
-namespace drum::builder_cmd::mod_deps::topo_sort::test {
+namespace drum::builder_cmd::module_deps::topo_sort::test {
 
   namespace {
 
@@ -147,4 +147,4 @@ namespace drum::builder_cmd::mod_deps::topo_sort::test {
     REQUIRE_FALSE(result);
   }
 
-} // namespace drum::builder_cmd::mod_deps::topo_sort::test
+} // namespace drum::builder_cmd::module_deps::topo_sort::test
