@@ -21,4 +21,5 @@ drum_add_command(
   test/test_scan_deps.cpp
   test/test_node.cpp
   test/test_topo_sort.cpp
-  test/test_flatten.cpp)
+  test/test_flatten.cpp
+  test/test_module_deps.cpp)
