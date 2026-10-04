@@ -48,7 +48,7 @@ namespace drum::builder_cmd::module_deps::comp_db {
 
     std::ranges::transform(
         units, std::back_inserter(database), [&](const auto &unit) {
-          return DatabaseEntry{.directory = ".",
+          return DatabaseEntry{.directory = fs::current_path().string(),
                                .arguments = generate_arguments(flags, unit),
                                .file = unit.source.string(),
                                .output = unit.object.string()};

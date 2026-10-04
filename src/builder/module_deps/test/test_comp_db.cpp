@@ -66,7 +66,7 @@ namespace drum::builder_cmd::module_deps::comp_db::test {
 
     for (const auto &[unit, entry] : std::views::zip(units, database)) {
 
-      REQUIRE(entry.directory == ".");
+      REQUIRE(entry.directory == fs::current_path().string());
       REQUIRE(entry.file == unit.source);
       REQUIRE(entry.output == unit.object);
 
