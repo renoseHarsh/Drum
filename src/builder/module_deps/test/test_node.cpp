@@ -51,18 +51,6 @@ namespace drum::builder_cmd::module_deps::node::test {
     auto import_a_node = Node{import_a, std::nullopt, {"alpha"}};
     auto import_a_b_node = Node{import_a_b, std::nullopt, {"alpha", "beta"}};
 
-    auto
-    make_provide_map(std::vector<std::pair<std::string_view, Node *>> pairs)
-        -> std::unordered_map<std::string_view, Node *> {
-      std::unordered_map<std::string_view, Node *> provide_map{};
-
-      for (auto pair : pairs) {
-        provide_map.emplace(pair.first, pair.second);
-      }
-
-      return provide_map;
-    }
-
   } // namespace
 
   TEST_CASE("Returns empty node list for empty input") {
@@ -164,94 +152,28 @@ namespace drum::builder_cmd::module_deps::node::test {
     REQUIRE_FALSE((*result)[0].module);
   }
 
-  TEST_CASE("Returns empty provide map for empty input") {
-    std::vector<Node> nodes{};
-
-    auto result = build_provide_map(nodes);
-
-    REQUIRE(result);
-    REQUIRE(result->empty());
-  }
-
-  TEST_CASE("Maps each module-bearing node to its logical name") {
-    std::vector<Node> nodes{plain_node, alpha_node, import_a_node, beta_node};
-
-    auto result = build_provide_map(nodes);
+  TEST_CASE("Resolves imports with correct back-links") {
+    auto result = link(
+        {plain_node, alpha_node, beta_node, import_a_node, import_a_b_node});
 
     REQUIRE(result);
-    REQUIRE(result->size() == 2);
+    auto &out = *result;
 
-    REQUIRE(result->contains(alpha_node.module->name));
-    REQUIRE((*result)[alpha_node.module->name] == &nodes[1]);
-
-    REQUIRE(result->contains(beta_node.module->name));
-    REQUIRE((*result)[beta_node.module->name] == &nodes[3]);
-  }
-
-  TEST_CASE("Returns empty provide map when no nodes have a module") {
-    std::vector<Node> nodes{plain_node, import_a_node, import_a_b_node};
-
-    auto result = build_provide_map(nodes);
-
-    REQUIRE(result);
-    REQUIRE(result->empty());
+    REQUIRE(out[1].dependents == std::vector{&out[3], &out[4]});
+    REQUIRE(out[2].dependents == std::vector{&out[4]});
+    REQUIRE(out[3].dependencies == std::vector{&out[1]});
+    REQUIRE(out[4].dependencies == std::vector{&out[1], &out[2]});
   }
 
   TEST_CASE("Returns error on duplicate module name") {
-    std::vector<Node> nodes{plain_node, alpha_node, alpha_node, import_a_node,
-                            beta_node};
-
-    auto result = build_provide_map(nodes);
+    auto result = link({alpha_node, alpha_node});
 
     REQUIRE_FALSE(result);
     REQUIRE(result.error() == "Duplicate module: alpha");
   }
 
-  TEST_CASE("Links nothing when no imports exist") {
-    std::vector<Node> nodes{plain_node, alpha_node, beta_node};
-    auto provide_map = make_provide_map({{alpha_node.module->name, &nodes[1]},
-                                         {beta_node.module->name, &nodes[2]}});
-
-    auto result = link_dependencies(provide_map, nodes);
-
-    REQUIRE(result);
-
-    for (const auto &node : nodes) {
-      REQUIRE(node.dependencies.empty());
-      REQUIRE(node.dependents.empty());
-    }
-  }
-
-  TEST_CASE("Resolves single and multiple imports with correct back-links") {
-    std::vector<Node> nodes{plain_node, alpha_node, beta_node, import_a_node,
-                            import_a_b_node};
-    auto provide_map = make_provide_map({{alpha_node.module->name, &nodes[1]},
-                                         {beta_node.module->name, &nodes[2]}});
-
-    auto result = link_dependencies(provide_map, nodes);
-
-    REQUIRE(result);
-
-    REQUIRE(nodes[1].dependents.size() == 2);
-    REQUIRE(nodes[1].dependents[0] == &nodes[3]);
-    REQUIRE(nodes[1].dependents[1] == &nodes[4]);
-
-    REQUIRE(nodes[2].dependents.size() == 1);
-    REQUIRE(nodes[2].dependents[0] == &nodes[4]);
-
-    REQUIRE(nodes[3].dependencies.size() == 1);
-    REQUIRE(nodes[3].dependencies[0] == &nodes[1]);
-
-    REQUIRE(nodes[4].dependencies.size() == 2);
-    REQUIRE(nodes[4].dependencies[0] == &nodes[1]);
-    REQUIRE(nodes[4].dependencies[1] == &nodes[2]);
-  }
-
-  TEST_CASE("Returns error and leaves no partial links on missing module") {
-    std::vector<Node> nodes{plain_node, alpha_node, import_a_b_node};
-    auto provide_map = make_provide_map({{alpha_node.module->name, &nodes[1]}});
-
-    auto result = link_dependencies(provide_map, nodes);
+  TEST_CASE("Returns error on missing module") {
+    auto result = link({alpha_node, import_a_b_node});
 
     REQUIRE_FALSE(result);
     REQUIRE(result.error() == "Module not found: beta");

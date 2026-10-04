@@ -71,6 +71,47 @@ namespace drum::builder_cmd::module_deps::node {
       return node;
     }
 
+    [[nodiscard]]
+    std::expected<std::unordered_map<std::string_view, Node *>, std::string>
+    build_provide_map(std::vector<Node> &nodes) {
+      std::unordered_map<std::string_view, Node *> provide_map{};
+
+      auto modules_only = nodes | std::views::filter([](const auto &node) {
+                            return node.module.has_value();
+                          });
+
+      for (auto &node : modules_only) {
+        std::string_view module_name{node.module->name};
+        if (provide_map.contains(module_name)) [[unlikely]]
+          return std::unexpected{
+              std::format("Duplicate module: {}", module_name)};
+
+        provide_map.emplace(module_name, &node);
+      }
+
+      return provide_map;
+    }
+
+    [[nodiscard]]
+    std::expected<void, std::string>
+    link_dependencies(std::unordered_map<std::string_view, Node *> provide_map,
+                      std::vector<Node> &nodes) {
+      for (auto &node : nodes) {
+        node.dependencies.reserve(node.imports.size());
+        for (auto &dependency : node.imports) {
+          auto module = provide_map.find(dependency);
+          if (module == provide_map.end()) [[unlikely]]
+            return std::unexpected{
+                std::format("Module not found: {}", dependency)};
+
+          node.dependencies.push_back(module->second);
+          module->second->dependents.push_back(&node);
+        }
+      }
+
+      return {};
+    }
+
   }; // namespace
 
   [[nodiscard]]
@@ -100,44 +141,12 @@ namespace drum::builder_cmd::module_deps::node {
   }
 
   [[nodiscard]]
-  std::expected<std::unordered_map<std::string_view, Node *>, std::string>
-  build_provide_map(std::vector<Node> &nodes) {
-    std::unordered_map<std::string_view, Node *> provide_map{};
-
-    auto modules_only = nodes | std::views::filter([](const auto &node) {
-                          return node.module.has_value();
-                        });
-
-    for (auto &node : modules_only) {
-      std::string_view module_name{node.module->name};
-      if (provide_map.contains(module_name)) [[unlikely]]
-        return std::unexpected{
-            std::format("Duplicate module: {}", module_name)};
-
-      provide_map.emplace(module_name, &node);
-    }
-
-    return provide_map;
-  }
-
-  [[nodiscard]]
-  std::expected<void, std::string>
-  link_dependencies(std::unordered_map<std::string_view, Node *> provide_map,
-                    std::vector<Node> &nodes) {
-    for (auto &node : nodes) {
-      node.dependencies.reserve(node.imports.size());
-      for (auto &dependency : node.imports) {
-        auto module = provide_map.find(dependency);
-        if (module == provide_map.end()) [[unlikely]]
-          return std::unexpected{
-              std::format("Module not found: {}", dependency)};
-
-        node.dependencies.push_back(module->second);
-        module->second->dependents.push_back(&node);
-      }
-    }
-
-    return {};
+  std::expected<std::vector<Node>, std::string> link(std::vector<Node> nodes) {
+    return build_provide_map(nodes)
+        .and_then([&](auto provide_map) {
+          return link_dependencies(provide_map, nodes);
+        })
+        .transform([&]() { return std::move(nodes); });
   }
 
 } // namespace drum::builder_cmd::module_deps::node
