@@ -76,13 +76,17 @@ namespace drum::builder_cmd {
                    fs::path obj{output_dir};
                    obj /= src.lexically_relative("src/");
                    obj.replace_extension(src.extension().string() + ".o");
-                   return std::pair{std::move(src), obj};
+                   return compile_unit::TranslationUnit{std::move(src),
+                                                        std::move(obj)};
                  }) |
                  std::ranges::to<std::vector>();
         })
+        .and_then([&](auto units) {
+          return module_deps::order(std::move(units), flags, output_dir);
+        })
 
-        .and_then([&](std::vector<compile::SourceObject> source_objects) {
-          return compile::compile(source_objects, flags, manifest.timestamp);
+        .and_then([&](auto units) {
+          return compile::compile(units, flags, manifest.timestamp);
         })
 
         .and_then([&](std::vector<fs::path> objs) {

@@ -7,6 +7,7 @@ import :log;
 
 import process;
 import compiler_flags;
+import compile_unit;
 
 namespace fs = std::filesystem;
 
@@ -14,14 +15,24 @@ namespace drum::builder_cmd::compile {
 
   namespace {
     std::expected<void, std::string>
-    compile_source(const fs::path &src, const fs::path &obj,
-                   const compiler_flags::Flags &flags) {
-      auto source_args = std::array{std::string{"-c"}, src.string(),
-                                    std::string("-o"), obj.string()};
+    compile_unit(const compile_unit::TranslationUnit &unit,
+                 const compiler_flags::Flags &flags) {
+      auto source_args = std::array{std::string{"-c"}, unit.source.string(),
+                                    std::string("-o"), unit.object.string()};
+
+      auto transform_bmi_to_arg = [](const compile_unit::BMI &bmi) {
+        return std::format("-fmodule-file={}={}", bmi.logical_name,
+                           bmi.path.string());
+      };
+
+      auto bmi_args = unit.dependency_bmis |
+                      std::views::transform(transform_bmi_to_arg) |
+                      std::ranges::to<std::vector>();
 
       auto args =
-          std::array<std::span<const std::string>, 2>{std::span{flags.args()},
-                                                      std::span{source_args}} |
+          std::array<std::span<const std::string>, 3>{std::span{flags.args()},
+                                                      std::span{source_args},
+                                                      std::span{bmi_args}} |
           std::views::join;
 
       return process::run_process("clang++", args).transform([](const auto &) {
@@ -57,32 +68,32 @@ namespace drum::builder_cmd::compile {
     }
   } // namespace
 
-  using SourceObject = std::pair<fs::path, fs::path>;
   std::expected<std::vector<fs::path>, std::string>
-  compile(std::vector<SourceObject> source_objects,
+  compile(std::vector<compile_unit::TranslationUnit> units,
           const compiler_flags::Flags &flags,
           fs::file_time_type manifest_lastwrite) {
     std::vector<fs::path> objects{};
-    objects.reserve(source_objects.size());
+    objects.reserve(units.size());
 
-    for (auto &[src, obj] : std::move(source_objects)) {
+    for (auto &unit : units) {
 
       std::error_code ec;
-      if (!fs::exists(obj, ec) || object_is_stale(obj, manifest_lastwrite)) {
-        log::compile(obj);
-        if (const auto parent = obj.parent_path(); !parent.empty()) {
+      if (!fs::exists(unit.object, ec) ||
+          object_is_stale(unit.object, manifest_lastwrite)) {
+        log::compile(unit.object);
+        if (const auto parent = unit.object.parent_path(); !parent.empty()) {
           fs::create_directories(parent, ec);
           if (ec)
             return std::unexpected{"Error in creating build directory"};
         }
 
-        if (auto result = compile_source(src, obj, flags); !result)
+        if (auto result = compile_unit(unit, flags); !result)
           return std::unexpected{std::move(result).error()};
 
       } else
-        log::cache_hit(obj);
+        log::cache_hit(unit.object);
 
-      objects.push_back(std::move(obj));
+      objects.push_back(std::move(unit.object));
     }
 
     return objects;

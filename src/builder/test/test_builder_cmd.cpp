@@ -8,6 +8,7 @@ import test_util;
 namespace fs = std::filesystem;
 
 namespace drum::builder_cmd::test {
+
   TEST_CASE("Exec package missing src directory") {
     const test_util::TestEnvironment env{};
 
@@ -100,4 +101,21 @@ namespace drum::builder_cmd::test {
     REQUIRE(fs::exists("build/debug/main.cpp.o"));
     REQUIRE(fs::exists("build/debug/core/util.cpp.o"));
   }
+
+  TEST_CASE("Full pipeline compiles C++23 modules") {
+    test_util::write_file(
+        "drum.toml", "name = \"modpkg\"\nversion = \"0.1.0\"\ntype = \"exec\"");
+    test_util::write_file("src/greeter.cppm",
+                          "export module greeter;\nexport void greet();");
+    test_util::write_file("src/greeter.cpp",
+                          "module greeter;\nvoid greet() {}");
+    test_util::write_file("src/main.cpp",
+                          "import greeter;\nint main() { greet(); }");
+
+    const auto result =
+        execute({}, {.name = "modpkg", .type = manifest::Manifest::Type::exec});
+    REQUIRE(result);
+    REQUIRE(fs::exists("build/debug/modpkg"));
+  }
+
 } // namespace drum::builder_cmd::test
