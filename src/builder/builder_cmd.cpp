@@ -46,16 +46,18 @@ namespace drum::builder_cmd {
       break;
     }
 
-    std::string profile = args.release ? "release" : "debug";
-    const fs::path output_dir = fs::path{"build"} / profile;
+    if (!manifest.profiles.contains(args.profile))
+      return std::unexpected{std::format("Unknown profile: {}", args.profile)};
+
+    const fs::path output_dir = fs::path{"build"} / args.profile;
+
     fs::path output_path{output_dir / manifest.name};
-
-    flags.set_standard(manifest.build.standard);
-    flags.add_flags(manifest.build.flags);
-    flags.add_flags(manifest.profiles.at(profile));
-
     if (manifest.type == manifest::Manifest::Type::lib)
       output_path.replace_extension(".a");
+
+    flags.set_standard(manifest.build.standard)
+        .add_flags(manifest.build.flags)
+        .add_flags(manifest.profiles.at(args.profile));
 
     std::error_code ec;
     fs::create_directories(output_dir, ec);

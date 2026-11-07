@@ -9,6 +9,7 @@ namespace drum::parser::test {
     constexpr const char *arg0 = "drum";
     constexpr const char *arg_build = "build";
     constexpr const char *arg_release = "--release";
+    constexpr const char *arg_profile = "--profile";
     constexpr const char *arg_unknown = "--wrong";
   } // namespace
 
@@ -20,7 +21,7 @@ namespace drum::parser::test {
 
     const auto *build_args = std::get_if<builder_cmd::BuildArgs>(&*result);
     REQUIRE(build_args != nullptr);
-    REQUIRE_FALSE(build_args->release);
+    REQUIRE(build_args->profile == "debug");
   }
 
   TEST_CASE("Build command parses release option") {
@@ -31,7 +32,7 @@ namespace drum::parser::test {
 
     const auto *build_args = std::get_if<builder_cmd::BuildArgs>(&*result);
     REQUIRE(build_args != nullptr);
-    REQUIRE(build_args->release);
+    REQUIRE(build_args->profile == "release");
   }
 
   TEST_CASE("Build command rejects unknown arguments") {
@@ -51,5 +52,24 @@ namespace drum::parser::test {
 
     auto result = drum::parser::parse_arguments(std::size(argv), argv);
     REQUIRE_FALSE(result);
+  }
+
+  TEST_CASE("Build command rejects --profile without a value") {
+    constexpr const char *argv[] = {arg0, arg_build, arg_profile};
+
+    const auto result = drum::parser::parse_arguments(std::size(argv), argv);
+    REQUIRE_FALSE(result);
+    REQUIRE(result.error() == "Missing profile name");
+  }
+
+  TEST_CASE("Build command parses --profile with a custom name") {
+    constexpr const char *argv[] = {arg0, arg_build, arg_profile, "custom"};
+
+    const auto result = drum::parser::parse_arguments(std::size(argv), argv);
+    REQUIRE(result);
+
+    const auto *build_args = std::get_if<builder_cmd::BuildArgs>(&*result);
+    REQUIRE(build_args != nullptr);
+    REQUIRE(build_args->profile == "custom");
   }
 }; // namespace drum::parser::test

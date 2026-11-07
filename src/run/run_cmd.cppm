@@ -6,7 +6,7 @@ export import manifest;
 
 export namespace drum::run_cmd {
   struct RunArgs {
-    bool release{};
+    std::string profile{"debug"};
   };
   std::expected<void, std::string> execute(const RunArgs &args,
                                            const manifest::Manifest &);

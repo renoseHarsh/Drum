@@ -59,7 +59,7 @@ namespace drum::builder_cmd::test {
     test_util::write_file("src/main.cpp", "int main() {}");
 
     const auto result =
-        execute({.release = true},
+        execute({.profile = "release"},
                 {.name = "demo", .type = manifest::Manifest::Type::exec});
     REQUIRE(result);
     REQUIRE(fs::exists("build/release/demo"));
@@ -116,6 +116,50 @@ namespace drum::builder_cmd::test {
         execute({}, {.name = "modpkg", .type = manifest::Manifest::Type::exec});
     REQUIRE(result);
     REQUIRE(fs::exists("build/debug/modpkg"));
+  }
+
+  TEST_CASE("Custom profile builds into its own directory") {
+    const test_util::TestEnvironment env{};
+    test_util::write_file("src/main.cpp", "int main() {}\n");
+
+    auto m = manifest::Manifest{.name = "demo",
+                                .type = manifest::Manifest::Type::exec};
+    m.profiles["ci"] = {"-O2"};
+
+    const auto result = execute({.profile = "ci"}, m);
+    REQUIRE(result);
+    REQUIRE(fs::exists("build/ci/demo"));
+    REQUIRE_FALSE(fs::exists("build/debug/demo"));
+  }
+
+  TEST_CASE("Unknown profile is rejected") {
+    const test_util::TestEnvironment env{};
+    test_util::write_file("src/main.cpp", "int main() {}\n");
+
+    const auto result =
+        execute({.profile = "missing"},
+                {.name = "demo", .type = manifest::Manifest::Type::exec});
+    REQUIRE_FALSE(result);
+    REQUIRE(result.error() == "Unknown profile: missing");
+  }
+
+  TEST_CASE("Build and profile flags are passed to the compiler") {
+    const test_util::TestEnvironment env{};
+    test_util::write_file("src/main.cpp",
+                          "#ifndef DRUM_BUILD\n"
+                          "#error \"build flags not applied\"\n"
+                          "#endif\n"
+                          "#ifndef DRUM_PROFILE\n"
+                          "#error \"profile flags not applied\"\n"
+                          "#endif\n"
+                          "int main() {}\n");
+
+    auto m = manifest::Manifest{.name = "demo",
+                                .type = manifest::Manifest::Type::exec};
+    m.build.flags = {"-DDRUM_BUILD"};
+    m.profiles["ci"] = {"-DDRUM_PROFILE"};
+
+    REQUIRE(execute({.profile = "ci"}, m));
   }
 
 } // namespace drum::builder_cmd::test

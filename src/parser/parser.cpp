@@ -46,12 +46,15 @@ namespace drum::parser {
         const std::string_view option{argv[i]};
 
         if (option == "--release") {
-          args.release = true;
-          continue;
+          args.profile = "release";
+        } else if (option == "--profile") {
+          if (i + 1 == argc)
+            return std::unexpected{"Missing profile name"};
+          args.profile = argv[++i];
+        } else {
+          return std::unexpected{
+              std::format("Unknown option for build: {}", option)};
         }
-
-        return std::unexpected{
-            std::format("Unknown option for build: {}", option)};
       }
 
       return args;
