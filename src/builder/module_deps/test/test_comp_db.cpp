@@ -47,9 +47,8 @@ namespace drum::builder_cmd::module_deps::comp_db::test {
 
     compiler_flags::Flags flags{};
     manifest::Manifest manifest{};
-    flags.set_standard(manifest.build.standard)
-        .set_warnings(manifest.build.warnings)
-        .set_warnings_as_errors(true);
+    flags.set_standard(manifest.build.standard);
+    flags.add_flags(manifest.build.flags);
 
     const auto result = generate_compile_database(units, flags, ".");
 

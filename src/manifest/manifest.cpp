@@ -5,11 +5,13 @@ import std;
 import tomlplusplus;
 
 namespace fs = std::filesystem;
+using namespace std::literals::string_view_literals;
 
 namespace drum::manifest {
   namespace {
     constexpr std::string_view invalid_error{"Invalid {}"};
 
+    [[nodiscard]]
     std::expected<std::string_view, std::string>
     extract_string(const toml::table &table, std::string_view key) {
       const auto *node = table.get(key);
@@ -24,6 +26,7 @@ namespace drum::manifest {
     }
 
     template <typename T>
+    [[nodiscard]]
     std::expected<std::optional<T>, std::string>
     extract_optional(const toml::table &table, std::string_view key) {
       const auto *node = table.get(key);
@@ -41,6 +44,7 @@ namespace drum::manifest {
     }
 
     template <typename T>
+    [[nodiscard]]
     std::expected<std::optional<std::vector<T>>, std::string>
     extract_optional_array(const toml::table &table, std::string_view key) {
       const auto *node = table.get(key);
@@ -69,8 +73,7 @@ namespace drum::manifest {
       return result;
     }
 
-    using namespace std::literals::string_view_literals;
-
+    [[nodiscard]]
     std::expected<Manifest::Build::Standard, std::string>
     parse_standard(std::string_view standard) {
       using enum manifest::Manifest::Build::Standard;
@@ -90,6 +93,7 @@ namespace drum::manifest {
       return it->second;
     }
 
+    [[nodiscard]]
     std::expected<Manifest::Type, std::string>
     parse_type(std::string_view type) {
       constexpr std::array types{std::pair{"lib"sv, Manifest::Type::lib},
@@ -104,134 +108,78 @@ namespace drum::manifest {
       return it->second;
     }
 
-    std::expected<Manifest::Build::Warnings, std::string>
-    parse_warnings(std::string_view warnings) {
-      using enum manifest::Manifest::Build::Warnings;
-      constexpr std::array levels{
-          std::pair{"none"sv, none},
-          std::pair{"default"sv, default_},
-          std::pair{"all"sv, all},
-          std::pair{"pedantic"sv, pedantic},
-      };
+    [[nodiscard]]
+    std::expected<void, std::string> fill_standard(const toml::table &table,
+                                                   Manifest::Build &build) {
+      auto standard = extract_optional<std::string_view>(table, "standard");
 
-      const auto it = std::ranges::find_if(
-          levels, [&](const auto &entry) { return entry.first == warnings; });
+      if (!standard)
+        return std::unexpected{std::move(standard).error()};
 
-      if (it == levels.end())
-        return std::unexpected{std::format(invalid_error, "warnings level")};
+      if (*standard) {
+        auto parsed = parse_standard(**standard);
+        if (!parsed)
+          return std::unexpected{std::move(parsed).error()};
+        build.standard = *parsed;
+      }
 
-      return it->second;
+      return {};
     }
 
+    [[nodiscard]]
+    std::expected<void, std::string> fill_flags(const toml::table &table,
+                                                Manifest::Build &build) {
+      auto flags = extract_optional_array<std::string>(table, "flags");
+
+      if (!flags)
+        return std::unexpected{std::move(flags).error()};
+
+      if (*flags)
+        build.flags = std::move(**flags);
+
+      return {};
+    }
+
+    [[nodiscard]]
     std::expected<Manifest::Build, std::string>
     parse_build(const toml::table &table) {
       Manifest::Build build{};
 
-      {
-        auto result =
-            extract_optional<std::string_view>(table, "standard")
-                .and_then(
-                    [](auto value) -> std::expected<
-                                       std::optional<Manifest::Build::Standard>,
-                                       std::string> {
-                      if (!value)
-                        return std::nullopt;
+      auto result = fill_standard(table, build).and_then([&]() {
+        return fill_flags(table, build);
+      });
 
-                      return parse_standard(*value);
-                    });
-
-        if (!result)
-          return std::unexpected{std::move(result).error()};
-
-        if (*result)
-          build.standard = **result;
-      }
-
-      {
-        auto result =
-            extract_optional<std::string_view>(table, "warnings")
-                .and_then(
-                    [](auto value) -> std::expected<
-                                       std::optional<Manifest::Build::Warnings>,
-                                       std::string> {
-                      if (!value)
-                        return std::nullopt;
-
-                      return parse_warnings(*value);
-                    });
-
-        if (!result)
-          return std::unexpected{std::move(result).error()};
-
-        if (*result)
-          build.warnings = **result;
-      }
-
-      {
-        auto result = extract_optional<bool>(table, "warnings_as_errors");
-
-        if (!result)
-          return std::unexpected{std::move(result).error()};
-
-        if (*result)
-          build.warnings_as_errors = **result;
-      }
-
-      {
-        auto result = extract_optional_array<std::string>(table, "extra_flags");
-
-        if (!result)
-          return std::unexpected{std::move(result).error()};
-
-        if (*result)
-          build.extra_flags = std::move(**result);
-      }
+      if (!result)
+        return std::unexpected{std::move(result).error()};
 
       return build;
     }
 
-    std::expected<Manifest::Profile::Optimization, std::string>
-    parse_optimization(std::int64_t value) {
-      if (value < 0 || value > 3)
-        return std::unexpected{std::format(invalid_error, "optimization")};
+    [[nodiscard]]
+    std::expected<void, std::string> fill_profiles(const toml::table &profiles,
+                                                   Manifest &manifest) {
+      for (const auto &[key, value] : profiles) {
+        const auto flags = value.as_array();
 
-      return static_cast<Manifest::Profile::Optimization>(value);
-    }
+        if (!flags)
+          return std::unexpected{std::format(invalid_error, key.str())};
 
-    std::expected<Manifest::Profile, std::string>
-    parse_profile(const toml::table &table, Manifest::Profile profile) {
-      {
-        auto result =
-            extract_optional<std::int64_t>(table, "optimization")
-                .and_then(
-                    [](auto value)
-                        -> std::expected<
-                            std::optional<Manifest::Profile::Optimization>,
-                            std::string> {
-                      if (!value)
-                        return std::nullopt;
+        const bool valid = std::ranges::all_of(
+            *flags, [](const auto &flag) { return flag.is_string(); });
+        if (!valid)
+          return std::unexpected{std::format(invalid_error, key.str())};
 
-                      return parse_optimization(*value);
-                    });
+        std::vector<std::string> flags_vec;
+        flags_vec.reserve(flags->size());
 
-        if (!result)
-          return std::unexpected{std::move(result).error()};
+        std::ranges::transform(
+            *flags, std::back_inserter(flags_vec),
+            [](const auto &node) { return node.as_string()->get(); });
 
-        if (*result)
-          profile.optimization = **result;
+        manifest.profiles[std::string{key}] = std::move(flags_vec);
       }
 
-      {
-        auto result = extract_optional<bool>(table, "debug");
-
-        if (!result)
-          return std::unexpected{std::move(result).error()};
-
-        if (*result)
-          profile.debug = **result;
-      }
-
-      return profile;
+      return {};
     }
 
   } // namespace
@@ -271,37 +219,21 @@ namespace drum::manifest {
       if (!result)
         return std::unexpected{std::move(result).error()};
 
-      manifest.type = *result;
+      manifest.type = std::move(*result);
     }
 
     if (const auto build_table = t["build"].as_table()) {
-      {
-        auto result = parse_build(*build_table);
-        if (!result)
-          return std::unexpected{std::move(result).error()};
+      auto result = parse_build(*build_table);
+      if (!result)
+        return std::unexpected{std::move(result).error()};
 
-        manifest.build = std::move(*result);
-      }
+      manifest.build = std::move(*result);
     }
 
-    if (const auto profile_table = t["profile"].as_table()) {
-      if (auto debug_table = (*profile_table)["debug"].as_table()) {
-        auto result = parse_profile(*debug_table, manifest.debug);
-
-        if (!result)
-          return std::unexpected{std::move(result).error()};
-
-        manifest.debug = std::move(*result);
-      }
-
-      if (auto debug_table = (*profile_table)["release"].as_table()) {
-        auto result = parse_profile(*debug_table, manifest.release);
-
-        if (!result)
-          return std::unexpected{std::move(result).error()};
-
-        manifest.release = std::move(*result);
-      }
+    if (const auto profile_table = t["profiles"].as_table()) {
+      auto result = fill_profiles(*profile_table, manifest);
+      if (!result)
+        return std::unexpected{std::move(result).error()};
     }
 
     manifest.timestamp = fs::last_write_time(manifest_path, ec);

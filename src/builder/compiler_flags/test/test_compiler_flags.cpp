@@ -48,101 +48,14 @@ namespace drum::compiler_flags::test {
     }
   }
 
-  TEST_CASE("Warning flags are emitted") {
-    using enum manifest::Manifest::Build::Warnings;
-
-    const std::array cases{
-        std::pair{none, std::vector<std::string_view>{"-w"}},
-        std::pair{default_, std::vector<std::string_view>{}},
-        std::pair{all, std::vector<std::string_view>{"-Wall", "-Wextra"}},
-        std::pair{pedantic, std::vector<std::string_view>{"-Wall", "-Wextra",
-                                                          "-Wpedantic"}},
-    };
-
-    for (const auto &[warnings, expected] : cases) {
-      Flags flags{};
-
-      flags.set_warnings(warnings);
-      require_compiler_args(flags, expected);
-    }
-  }
-
-  TEST_CASE("Warnings as errors flag is emitted") {
-    Flags flags{};
-
-    flags.set_warnings_as_errors(true);
-    require_compiler_args(flags, std::array{"-Werror"sv});
-  }
-
-  TEST_CASE("Extra flags appear in args") {
-    Flags flags{};
-
-    const std::vector<std::string_view> expected{
-        "-march=native",
-        "-fno-exceptions",
-        "-fno-rtti",
-    };
-    auto string_flags = expected |
-                        std::views::transform([](std::string_view flag) {
-                          return std::string(flag);
-                        }) |
-                        std::ranges::to<std::vector<std::string>>();
-
-    flags.add_extra_flags(string_flags);
-    require_compiler_args(flags, expected);
-  }
-
-  TEST_CASE("Compiler flags are emitted") {
-    using enum manifest::Manifest::Build::Standard;
-    using enum manifest::Manifest::Build::Warnings;
+  TEST_CASE("Extra flags are added") {
+    std::vector<std::string> extra_args = {"-O1", "-g"};
+    std::array cmp_args{"-O1"sv, "-g"sv};
 
     Flags flags{};
 
-    flags.set_standard(cpp23)
-        .set_warnings(pedantic)
-        .set_warnings_as_errors(true)
-        .add_include_directory("include");
-
-    flags.add_extra_flags({
-        "-march=native",
-        "-fno-rtti",
-    });
-
-    require_compiler_args(flags,
-                          std::array{"-std=c++23"sv, "-Wall"sv, "-Wextra"sv,
-                                     "-Wpedantic"sv, "-Werror"sv, "-Iinclude"sv,
-                                     "-march=native"sv, "-fno-rtti"sv});
+    flags.add_flags(extra_args);
+    require_compiler_args(flags, cmp_args);
   }
 
-  TEST_CASE("Optimization flags are emitted") {
-    using enum manifest::Manifest::Profile::Optimization;
-
-    const std::array cases{
-        std::pair{O0, "-O0"sv},
-        std::pair{O1, "-O1"sv},
-        std::pair{O2, "-O2"sv},
-        std::pair{O3, "-O3"sv},
-    };
-
-    for (const auto &[level, expected] : cases) {
-      Flags flags{};
-
-      flags.set_optimization(level);
-      require_compiler_args(flags, std::array{expected});
-    }
-  }
-
-  TEST_CASE("Debug flags are emitted") {
-    const std::array cases{
-        std::pair{true, "-g"sv},
-        std::pair{false, "-DNDEBUG"sv},
-    };
-
-    for (const auto &[debug, expected] : cases) {
-      Flags flags{};
-
-      flags.set_debug(debug);
-      require_compiler_args(flags, std::array{expected});
-    }
-  }
 } // namespace drum::compiler_flags::test

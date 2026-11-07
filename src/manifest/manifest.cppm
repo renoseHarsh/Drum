@@ -18,24 +18,8 @@ export namespace drum::manifest {
         cpp26,
       };
 
-      enum class Warnings { none, default_, all, pedantic };
-
       Standard standard{Standard::cpp23};
-      Warnings warnings{Warnings::default_};
-      bool warnings_as_errors{false};
-      std::vector<std::string> extra_flags{};
-    };
-
-    struct Profile {
-      enum class Optimization {
-        O0,
-        O1,
-        O2,
-        O3,
-      };
-
-      Optimization optimization{};
-      bool debug{};
+      std::vector<std::string> flags{};
     };
 
     std::string name{};
@@ -44,14 +28,9 @@ export namespace drum::manifest {
 
     Build build{};
 
-    Profile debug{
-        .optimization = Profile::Optimization::O0,
-        .debug = true,
-    };
-
-    Profile release{
-        .optimization = Profile::Optimization::O3,
-        .debug = false,
+    std::unordered_map<std::string, std::vector<std::string>> profiles{
+        {"debug", {"-O0", "-g"}},
+        {"release", {"-O3", "-DNDEBUG"}},
     };
 
     std::filesystem::file_time_type timestamp{};

@@ -29,67 +29,8 @@ export namespace drum::compiler_flags {
       return *this;
     }
 
-    Flags &set_warnings(Manifest::Build::Warnings warnings) {
-      using enum Manifest::Build::Warnings;
-
-      switch (warnings) {
-      case none:
-        args_.push_back("-w");
-        break;
-
-      case default_:
-        break;
-
-      case all:
-        args_.push_back("-Wall");
-        args_.push_back("-Wextra");
-        break;
-
-      case pedantic:
-        args_.push_back("-Wall");
-        args_.push_back("-Wextra");
-        args_.push_back("-Wpedantic");
-        break;
-      }
-
-      return *this;
-    }
-
-    Flags &set_warnings_as_errors(bool enabled) {
-      if (enabled)
-        args_.push_back("-Werror");
-
-      return *this;
-    }
-
-    Flags &add_extra_flags(std::vector<std::string> flags) {
-      args_.append_range(flags | std::views::as_rvalue);
-
-      return *this;
-    }
-
-    Flags &set_optimization(Manifest::Profile::Optimization optimization) {
-      using enum Manifest::Profile::Optimization;
-
-      constexpr std::array optimizations{
-          "-O0",
-          "-O1",
-          "-O2",
-          "-O3",
-      };
-
-      args_.push_back(optimizations[static_cast<std::size_t>(
-          std::to_underlying(optimization))]);
-
-      return *this;
-    }
-
-    Flags &set_debug(bool debug) {
-      if (debug)
-        args_.push_back("-g");
-      else
-        args_.push_back("-DNDEBUG");
-
+    Flags &add_flags(const std::vector<std::string> &args) {
+      args_.append_range(args);
       return *this;
     }
 

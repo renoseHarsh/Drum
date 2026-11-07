@@ -69,57 +69,27 @@ type = "exec"
                         "Invalid standard");
   }
 
-  TEST_CASE("Invalid warnings") {
+  TEST_CASE("Invalid flag type") {
     const test_util::TestEnvironment env{};
     require_parse_error(
-        std::format("{}[build]\nwarnings = \"foo\"", base_manifest),
-        "Invalid warnings level");
-    require_parse_error(std::format("{}[build]\nwarnings = 42", base_manifest),
-                        "Invalid warnings");
+        std::format("{}[build]\nflags = [\"-Wall\", 42]", base_manifest),
+        "Invalid flags");
   }
 
-  TEST_CASE("Invalid warnings_as_errors") {
+  TEST_CASE("Invalid profiles") {
     const test_util::TestEnvironment env{};
-    require_parse_error(
-        std::format("{}[build]\nwarnings_as_errors = \"foo\"", base_manifest),
-        "Invalid warnings_as_errors");
-    require_parse_error(
-        std::format("{}[build]\nwarnings_as_errors = 42", base_manifest),
-        "Invalid warnings_as_errors");
-  }
 
-  TEST_CASE("Invalid extra_flags") {
-    const test_util::TestEnvironment env{};
-    require_parse_error(
-        std::format("{}[build]\nextra_flags = \"-O2\"", base_manifest),
-        "Invalid extra_flags");
-    require_parse_error(
-        std::format("{}[build]\nextra_flags = [\"-O2\", 42]", base_manifest),
-        "Invalid extra_flags");
-  }
+    SECTION("Profile is not an array") {
+      require_parse_error(
+          std::format("{}[profiles]\ndebug = \"-O0\"", base_manifest),
+          "Invalid debug");
+    }
 
-  TEST_CASE("Invalid optimization") {
-    const test_util::TestEnvironment env{};
-    require_parse_error(
-        std::format("{}[profile.debug]\noptimization = 4", base_manifest),
-        "Invalid optimization");
-    require_parse_error(
-        std::format("{}[profile.release]\noptimization = -1", base_manifest),
-        "Invalid optimization");
-    // wrong type
-    require_parse_error(
-        std::format("{}[profile.debug]\noptimization = \"O2\"", base_manifest),
-        "Invalid optimization");
-  }
-
-  TEST_CASE("Invalid debug") {
-    const test_util::TestEnvironment env{};
-    require_parse_error(
-        std::format("{}[profile.debug]\ndebug = \"yes\"", base_manifest),
-        "Invalid debug");
-    require_parse_error(
-        std::format("{}[profile.release]\ndebug = 1", base_manifest),
-        "Invalid debug");
+    SECTION("Profile contains non-string values") {
+      require_parse_error(
+          std::format("{}[profiles]\ndebug = [\"-O0\", 42]", base_manifest),
+          "Invalid debug");
+    }
   }
 
   TEST_CASE("Valid exec manifest") {
@@ -133,17 +103,14 @@ type = "exec"
     REQUIRE(result->name == "test_pkg");
     REQUIRE(result->version == "0.1.0");
     REQUIRE(result->type == Manifest::Type::exec);
+    REQUIRE(result->build.standard == Manifest::Build::Standard::cpp23);
+    REQUIRE(result->build.flags.empty());
+    REQUIRE(std::ranges::equal(result->profiles.at("debug"),
+                               std::array{"-O0", "-g"}));
+    REQUIRE(std::ranges::equal(result->profiles.at("release"),
+                               std::array{"-O3", "-DNDEBUG"}));
     REQUIRE(
         (result->timestamp == std::filesystem::last_write_time("drum.toml")));
-    REQUIRE(result->build.standard == Manifest::Build::Standard::cpp23);
-    REQUIRE(result->build.warnings == Manifest::Build::Warnings::default_);
-    REQUIRE_FALSE(result->build.warnings_as_errors);
-    REQUIRE(result->build.extra_flags.empty());
-    REQUIRE(result->debug.optimization == Manifest::Profile::Optimization::O0);
-    REQUIRE(result->debug.debug);
-    REQUIRE_FALSE(result->release.debug);
-    REQUIRE(result->release.optimization ==
-            Manifest::Profile::Optimization::O3);
   }
 
   TEST_CASE("Valid lib manifest") {
@@ -155,14 +122,14 @@ type = "exec"
     REQUIRE(result);
     REQUIRE(result->name == "lib_pkg");
     REQUIRE(result->version == "0.2.0");
-    REQUIRE(result->type == Manifest::Type::lib);
-    REQUIRE_FALSE(result->build.warnings_as_errors);
-    REQUIRE(result->build.extra_flags.empty());
-    REQUIRE(result->debug.optimization == Manifest::Profile::Optimization::O0);
-    REQUIRE(result->debug.debug);
-    REQUIRE_FALSE(result->release.debug);
-    REQUIRE(result->release.optimization ==
-            Manifest::Profile::Optimization::O3);
+    REQUIRE(result->build.standard == Manifest::Build::Standard::cpp23);
+    REQUIRE(result->build.flags.empty());
+    REQUIRE(std::ranges::equal(result->profiles.at("debug"),
+                               std::array{"-O0", "-g"}));
+    REQUIRE(std::ranges::equal(result->profiles.at("release"),
+                               std::array{"-O3", "-DNDEBUG"}));
+    REQUIRE(
+        (result->timestamp == std::filesystem::last_write_time("drum.toml")));
   }
 
   TEST_CASE("Standard parsed from build table") {
@@ -183,90 +150,40 @@ type = "exec"
     }
   }
 
-  TEST_CASE("Warnings parsed from build table") {
-    const test_util::TestEnvironment env{};
-
-    using enum manifest::Manifest::Build::Warnings;
-    const auto cases = {std::pair{"none", none}, std::pair{"default", default_},
-                        std::pair{"all", all}, std::pair{"pedantic", pedantic}};
-    for (const auto &[warnings, expected] : cases) {
-      test_util::write_file(
-          "drum.toml",
-          std::format("{}[build]\nwarnings = \"{}\"", base_manifest, warnings));
-
-      const auto result = parse();
-      REQUIRE(result);
-      REQUIRE(result->build.warnings == expected);
-    }
-  }
-
-  TEST_CASE("Warnings_as_errors parsed from build table") {
-    const test_util::TestEnvironment env{};
-
-    const auto cases = {std::pair{true, true}, std::pair{false, false}};
-    for (const auto &[value, expected] : cases) {
-      test_util::write_file("drum.toml",
-                            std::format("{}[build]\nwarnings_as_errors = {}",
-                                        base_manifest, value));
-
-      const auto result = parse();
-      REQUIRE(result);
-      REQUIRE(result->build.warnings_as_errors == expected);
-    }
-  }
-
-  TEST_CASE("Extra_flags parsed from build table") {
-    const test_util::TestEnvironment env{};
-
-    std::vector<std::string> extra_flags{"-fno-rtti", "-fvisibility=hidden"};
-    std::string flags = extra_flags |
-                        std::views::transform([](std::string_view flag) {
-                          return std::format("\"{}\"", flag);
-                        }) |
-                        std::views::join_with(std::string_view{", "}) |
-                        std::ranges::to<std::string>();
-
-    test_util::write_file(
-        "drum.toml",
-        std::format("{}[build]\nextra_flags = [{}]", base_manifest, flags));
-
-    const auto result = parse();
-    REQUIRE(result);
-    REQUIRE(result->build.extra_flags == extra_flags);
-  }
-
-  TEST_CASE("Profiles parsed from profile table") {
+  TEST_CASE("Multiple flags") {
     const test_util::TestEnvironment env{};
 
     test_util::write_file(
         "drum.toml",
-        std::format("{0}[profile.debug]\noptimization = 1\ndebug = true\n\n"
-                    "[profile.release]\noptimization = 2\ndebug = false\n",
+        std::format("{}[build]\nflags = [\"-Wall\", \"-Wextra\", \"-Werror\"]",
                     base_manifest));
     const auto result = parse();
     REQUIRE(result);
-
-    using enum manifest::Manifest::Profile::Optimization;
-    REQUIRE(result->debug.optimization == O1);
-    REQUIRE(result->debug.debug);
-    REQUIRE(result->release.optimization == O2);
-    REQUIRE_FALSE(result->release.debug);
+    REQUIRE(result->build.flags ==
+            std::vector<std::string>{"-Wall", "-Wextra", "-Werror"});
   }
 
-  TEST_CASE("Partial profile overrides keep defaults") {
+  TEST_CASE("Profiles parsed from manifest") {
     const test_util::TestEnvironment env{};
 
-    test_util::write_file("drum.toml",
-                          std::format("{0}[profile.debug]\noptimization = 2\n\n"
-                                      "[profile.release]\ndebug = true\n",
-                                      base_manifest));
+    test_util::write_file(
+        "drum.toml",
+        std::format("{}[profiles]\n"
+                    "debug = [\"-O1\", \"-g\"]\n"
+                    "production = [\"-O3\", \"-DNDEBUG\", \"-flto\"]",
+                    base_manifest));
+
     const auto result = parse();
     REQUIRE(result);
 
-    using enum manifest::Manifest::Profile::Optimization;
-    REQUIRE(result->debug.optimization == O2);   // overridden
-    REQUIRE(result->debug.debug);                // default true kept
-    REQUIRE(result->release.optimization == O3); // default O3 kept
-    REQUIRE(result->release.debug);              // overridden
+    REQUIRE(std::ranges::equal(result->profiles.at("debug"),
+                               std::array{"-O1", "-g"}));
+
+    REQUIRE(std::ranges::equal(result->profiles.at("release"),
+                               std::array{"-O3", "-DNDEBUG"}));
+
+    REQUIRE(std::ranges::equal(result->profiles.at("production"),
+                               std::array{"-O3", "-DNDEBUG", "-flto"}));
   }
+
 } // namespace drum::manifest::test
