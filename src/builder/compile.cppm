@@ -2,8 +2,8 @@ module builder_cmd:compile;
 
 import std;
 
-import :depfile;
 import :log;
+import :cache;
 
 import process;
 import compiler_flags;
@@ -39,33 +39,6 @@ namespace drum::builder_cmd::compile {
       });
     }
 
-    bool object_is_stale(const fs::path &object,
-                         const fs::file_time_type &manifest_timestamp) {
-      std::error_code ec{};
-      const auto last_write_obj = fs::last_write_time(object, ec);
-      if (ec)
-        return true;
-
-      if (manifest_timestamp > last_write_obj)
-        return true;
-
-      auto dependency = object;
-      dependency.replace_extension(".d");
-
-      const auto dependencies_result = depfile::parse(dependency);
-      if (!dependencies_result)
-        return true;
-
-      const auto &[target, dependencies] = *dependencies_result;
-
-      if (object != target)
-        return true;
-
-      return std::ranges::any_of(dependencies, [&](const auto &dep) {
-        const auto last_dep_write = fs::last_write_time(dep, ec);
-        return ec || (last_dep_write > last_write_obj);
-      });
-    }
   } // namespace
 
   std::expected<std::vector<fs::path>, std::string>
@@ -77,11 +50,10 @@ namespace drum::builder_cmd::compile {
 
     for (auto &unit : units) {
 
-      std::error_code ec;
-      if (!fs::exists(unit.object, ec) ||
-          object_is_stale(unit.object, manifest_lastwrite)) {
+      if (cache::unit_is_stale(unit, manifest_lastwrite)) {
         log::compile(unit.object);
         if (const auto parent = unit.object.parent_path(); !parent.empty()) {
+          std::error_code ec;
           fs::create_directories(parent, ec);
           if (ec)
             return std::unexpected{"Error in creating build directory"};

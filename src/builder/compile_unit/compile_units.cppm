@@ -16,6 +16,16 @@ export namespace drum::builder_cmd::compile_unit {
     fs::path object{};
 
     std::vector<BMI> dependency_bmis{};
+
+    [[nodiscard]] bool provides_bmi() const {
+      return source.extension() == ".cppm";
+    }
+
+    [[nodiscard]] fs::path bmi_path() const {
+      auto bmi{object};
+      bmi.replace_extension(".pcm");
+      return bmi;
+    }
   };
 
 } // namespace drum::builder_cmd::compile_unit

@@ -52,13 +52,9 @@ namespace drum::builder_cmd::module_deps::node {
                    compile_unit::TranslationUnit unit) {
       Node node{std::move(unit)};
 
-      if (rule.provides && !rule.provides->empty()) {
-        fs::path bmi{node.unit.object};
-        bmi.replace_extension(".pcm");
-
+      if (rule.provides && !rule.provides->empty())
         node.module =
-            Module{rule.provides->front().logical_name, std::move(bmi)};
-      }
+            Module{rule.provides->front().logical_name, node.unit.bmi_path()};
 
       if (rule.requires_modules) {
         node.imports.reserve(rule.requires_modules->size());

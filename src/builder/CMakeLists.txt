@@ -27,6 +27,7 @@ drum_add_command(
   test/test_link.cpp
   test/test_depfile.cpp
   test/test_archive.cpp
+  test/test_cache.cpp
   TEST_SOURCES
   test/test_builder_cmd.cpp)
 

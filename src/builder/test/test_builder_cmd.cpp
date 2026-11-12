@@ -103,6 +103,7 @@ namespace drum::builder_cmd::test {
   }
 
   TEST_CASE("Full pipeline compiles C++23 modules") {
+    test_util::TestEnvironment env{};
     test_util::write_file(
         "drum.toml", "name = \"modpkg\"\nversion = \"0.1.0\"\ntype = \"exec\"");
     test_util::write_file("src/greeter.cppm",
